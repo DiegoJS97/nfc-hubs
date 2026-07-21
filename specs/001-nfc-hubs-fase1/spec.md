@@ -13,6 +13,27 @@
 > `[ES] "Carta de cócteles"`. **Do not translate `[ES]` strings.** Everything else in this document
 > is technical/structural content in English.
 
+## Clarifications
+
+### Session 2026-07-21
+
+- Q: Do the tags of different tables in the same business point to the same hub URL, or does each table
+  have its own identity in the URL? → A: One hub page per business, with the table identifier as a URL
+  query parameter (e.g. `?m=12`); phase 1 ignores it when rendering, phase 2 reads it for analytics.
+- Q: How should the vague load-speed criterion (SC-008 "near-instant") be made measurable? → A: Both a
+  time target and a payload budget — essential content visible in ≤1.5 s on a mid-range phone over
+  typical 4G and ≤3 s on a degraded connection, with a total initial payload ≤100 KB and no
+  render-blocking third-party resources.
+- Q: What accessibility baseline must the hubs meet, given the nocturnal visual register and
+  mobile-only, one-handed use? → A: WCAG 2.2 level AA — text contrast ≥4.5:1, tap targets ≥44×44 px,
+  visible focus, semantic links, and a correct page language attribute.
+- Q: How must an entry behave while its destination is still an unreplaced placeholder? → A: The entry
+  renders normally in its priority position, and tapping it shows an inline "pending confirmation"
+  notice instead of navigating (no navigation to a fake or dead destination).
+- Q: How must the tapas "save contact" entry behave while the vCard data is still placeholder? → A:
+  The same rule as FR-024 — while any of the four vCard fields is unconfirmed, tapping shows the
+  pending notice and generates no vCard at all.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Cocktail-bar customer accesses their table's services (Priority: P1)
@@ -29,8 +50,9 @@ this hub rendering and linking correctly on mobile, there is no product. It deli
 even if business 2 does not exist yet.
 
 **Independent Test**: Can be tested in isolation by opening the cocktail-bar hub URL in a mobile
-browser and verifying that the 6 action buttons lead to their (placeholder) destinations and that
-WiFi appears as non-actionable text, in the defined priority order.
+browser and verifying that the 6 action buttons resolve correctly for their current data state
+(navigating when the destination is confirmed, showing the pending notice while it is a placeholder)
+and that WiFi appears as non-actionable text, in the defined priority order.
 
 **Acceptance Scenarios**:
 
@@ -38,10 +60,14 @@ WiFi appears as non-actionable text, in the defined priority order.
    entries are shown in this order ([ES] labels, keep in Spanish): [ES] "Carta de cócteles",
    [ES] "Reservar mesa / zona VIP", [ES] "Playlist / Spotify", [ES] "Agenda de eventos / DJs",
    "Instagram", [ES] "Reseña Google", and [ES] "WiFi" (informational text at the end).
-2. **Given** the cocktail-bar hub loaded, **When** the customer taps [ES] "Carta de cócteles",
-   **Then** the browser navigates to the menu's external destination (an identifiable placeholder).
-3. **Given** the cocktail-bar hub loaded, **When** the customer taps [ES] "Reseña Google", **Then**
-   the browser opens the link in "write review" (writereview) format with the business's place ID.
+2. **Given** the cocktail-bar hub loaded and a confirmed menu destination, **When** the customer taps
+   [ES] "Carta de cócteles", **Then** the browser navigates to that external destination; **and given**
+   the destination is still a placeholder, **Then** the inline pending-confirmation notice is shown
+   and no navigation occurs.
+3. **Given** the cocktail-bar hub loaded and a confirmed place ID, **When** the customer taps
+   [ES] "Reseña Google", **Then** the browser opens the link in "write review" (writereview) format
+   with that place ID; **and given** the place ID is still a placeholder, **Then** the pending
+   notice is shown instead.
 4. **Given** the cocktail-bar hub loaded, **When** the customer locates the WiFi block, **Then** they
    see the network name as informational text and there is no element that attempts to connect to
    WiFi from the page.
@@ -64,8 +90,9 @@ both businesses are mandatory phase 1 deliverables; neither is optional. In-brow
 is the only local interactive capability and must work without a backend.
 
 **Independent Test**: Can be tested in isolation by opening the tapas hub URL in a mobile browser,
-verifying the order of the 8 entries and that "save contact" downloads/offers a vCard with the
-business's placeholder data, with no server calls.
+verifying the order of the 8 entries and that "save contact" behaves correctly for its data state —
+offering a vCard with the four values once confirmed, or showing the pending notice while any is a
+placeholder — with no server calls in either case.
 
 **Acceptance Scenarios**:
 
@@ -73,14 +100,18 @@ business's placeholder data, with no server calls.
    shown in this order ([ES] labels, keep in Spanish): [ES] "Carta", [ES] "Reservar mesa",
    [ES] "Para llevar / catering", [ES] "Reseña Google", [ES] "Newsletter / club de socios",
    "Instagram", [ES] "WiFi" (informational text), [ES] "Guardar contacto".
-2. **Given** the tapas hub loaded, **When** the customer taps [ES] "Guardar contacto", **Then** the
-   browser generates and offers a vCard with the business's name, phone, address, and website
-   (placeholder values), without making any network request to a proprietary backend.
-3. **Given** the tapas hub loaded, **When** the customer taps [ES] "Newsletter / club de socios",
-   **Then** it navigates to an external destination (e.g., an email provider), not to a form that
-   requires a proprietary server.
-4. **Given** the tapas hub loaded, **When** the customer taps [ES] "Reseña Google", **Then** the
-   browser opens the writereview link with the business's place ID.
+2. **Given** the tapas hub loaded and the four contact values confirmed, **When** the customer taps
+   [ES] "Guardar contacto", **Then** the browser generates and offers a vCard with the business's
+   name, phone, address, and website, without making any network request to a proprietary backend;
+   **and given** any of those four values is still a placeholder, **Then** the pending notice is
+   shown and no vCard is generated.
+3. **Given** the tapas hub loaded and a confirmed newsletter destination, **When** the customer taps
+   [ES] "Newsletter / club de socios", **Then** it navigates to that external destination (e.g., an
+   email provider), not to a form that requires a proprietary server; **and given** it is still a
+   placeholder, **Then** the pending notice is shown instead.
+4. **Given** the tapas hub loaded and a confirmed place ID, **When** the customer taps
+   [ES] "Reseña Google", **Then** the browser opens the writereview link with that place ID; **and
+   given** the place ID is still a placeholder, **Then** the pending notice is shown instead.
 5. **Given** the tapas hub, **When** it is compared with the cocktail bar's, **Then** its visual
    identity is clearly distinct (daytime/product register).
 
@@ -117,9 +148,9 @@ markup or the hub logic.
 
 - **WiFi is never actionable**: in both hubs, the WiFi block must be informational text; no tap on it
   must attempt to connect to the network (the real connection is handled by the tag's NDEF record).
-- **Google review without a confirmed place ID**: while the place ID is a placeholder, the
-  writereview link must remain identifiable as a placeholder and must not direct to an incorrect real
-  business.
+- **Google review without a confirmed place ID**: while the place ID is a placeholder, the review
+  entry must behave as a pending entry per FR-024 — showing the pending-confirmation notice rather
+  than navigating — so it can never direct a customer to an incorrect real business.
 - **External destination down or changed**: since links go directly to the external destination in
   phase 1, if an external destination changes its URL, the hub must be updatable by changing only the
   centralized destination value.
@@ -128,8 +159,11 @@ markup or the hub logic.
 - **Per-business absent buttons**: the cocktail bar does NOT have "save contact"; tapas DOES. The
   cocktail bar includes no vCard. Each hub shows only its own set of entries, with no empty gaps or
   empty buttons.
-- **Loading on a slow mobile connection**: the hub must remain usable and render its essential
-  content quickly on a typical venue mobile connection.
+- **Missing or malformed table identifier**: if the hub URL arrives with no table parameter, an empty
+  one, or an unrecognized value (a mistyped tag, a shared link, a direct visit), the hub must render
+  and behave exactly as it does with a valid one; it must never show an error or a degraded page.
+- **Loading on a slow mobile connection**: the hub must remain usable and render its essential content
+  within the budget defined in SC-008, including on the degraded connection typical of a busy venue.
 
 ## Requirements *(mandatory)*
 
@@ -137,11 +171,14 @@ markup or the hub logic.
 
 **Common to both hubs**
 
-- **FR-001**: The system MUST offer, per business, a single hub page as the destination of its
-  tables' NFC tags.
+- **FR-001**: The system MUST offer, per business, a single hub page as the destination of all its
+  tables' NFC tags. Each table's tag MUST encode that same hub URL carrying a table identifier as a
+  query parameter (e.g. `?m=12`), so that the table of origin travels in the URL without requiring a
+  distinct page per table.
 - **FR-002**: The system MUST be servable as pure static content (HTML/CSS/JS) over HTTPS, without
   requiring any proprietary backend in phase 1.
-- **FR-003**: Each "link" entry MUST be a direct link to its external destination in phase 1.
+- **FR-003**: Each "link" entry whose destination is confirmed MUST be a direct link to that external
+  destination in phase 1. Entries whose destination is still a placeholder behave per FR-024.
 - **FR-004**: All of a hub's link destinations MUST be defined centrally and in a structured way per
   business (not hard-coded button by button in a scattered way), so that phase 2 can introduce an
   analytics redirector without rewriting each hub.
@@ -168,7 +205,24 @@ markup or the hub logic.
   change (data lives separately from the structure/layout).
 - **FR-015**: The two hubs MUST have a clearly differentiated visual identity from each other
   (cocktail bar = nocturnal/experiential register; gourmet tapas = daytime/product register), and
-  MUST NOT look like the same template recolored or a default-generated result.
+  MUST NOT look like the same template recolored or a default-generated result. Neither visual
+  identity may be achieved at the cost of the accessibility baseline in FR-023.
+- **FR-021**: The table identifier query parameter MUST NOT affect what phase 1 renders: each hub MUST
+  render identically whether the parameter is present, absent, empty, or carries an unknown value, and
+  phase 1 MUST NOT store it, display it, or send it anywhere.
+- **FR-022**: Each hub MUST render its essential content without depending on any render-blocking
+  third-party resource (externally hosted fonts, stylesheets, scripts, or trackers), and MUST stay
+  within the load budget defined in SC-008.
+- **FR-023**: Both hubs MUST meet WCAG 2.2 level AA: text contrast ratio ≥4.5:1 against its
+  background (≥3:1 for large text), interactive targets of at least 44×44 CSS px, a visible focus
+  indicator, entries exposed as real links/buttons rather than non-semantic tappable elements, and
+  the page language declared as Spanish (matching the [ES] user-facing labels).
+- **FR-024**: An entry whose destination is still an unreplaced placeholder MUST render normally in
+  its priority position with its own label, and tapping it MUST show an inline notice in Spanish that
+  the destination is pending confirmation (e.g. [ES] "Pendiente de confirmar") INSTEAD of navigating.
+  It MUST NOT navigate to a fake, dead, or incorrect destination, and MUST NOT be silently
+  unresponsive. The notice MUST be perceivable beyond colour alone and announced to assistive
+  technology, per FR-023.
 
 **Business 1 Hub — Cocktail Bar** (business placeholder name: [ES] "Bar Ejemplo Copas")
 
@@ -193,7 +247,9 @@ markup or the hub logic.
   external link (e.g., to an email provider) and MUST NOT depend on a form with a proprietary backend.
 - **FR-020**: The tapas hub's "save contact" entry MUST generate a vCard dynamically in the browser
   itself with the business's name, phone, address, and website, without making requests to a
-  proprietary backend.
+  proprietary backend. While ANY of those four values is still an unreplaced placeholder, the entry
+  MUST instead behave as a pending entry per FR-024 (pending notice, no vCard generated); it MUST
+  NEVER produce a vCard containing placeholder text or partial contact data.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -202,12 +258,16 @@ markup or the hub logic.
   (placeholder), Google place ID (placeholder), phone/address/website (placeholder; only tapas uses
   these for the vCard).
 - **Hub entry**: an option visible on a hub. Attributes: label, priority order, type (external link /
-  writereview review / informational text / local vCard action), and destination (external URL or
-  place ID). Link-type destinations are defined centrally per business.
+  writereview review / informational text / local vCard action), destination (external URL or place
+  ID), and resolution state — confirmed or pending — derived from whether the data it depends on is
+  still a placeholder. Link-type destinations are defined centrally per business.
 - **Business data**: the set of a business's real values, separate from the hub's structure, editable
   without touching the layout. Each unconfirmed value is marked as a placeholder.
+- **Table**: a physical table within a business, identified by a table identifier carried as a query
+  parameter in the hub URL written to its NFC tag. Phase 1 does not read, render, or persist it; it
+  exists in the URL so that phase 2 can attribute a tap to its table without rewriting the tags.
 - **Business vCard** (tapas only): a contact representation generated in the browser from the
-  business data (name, phone, address, website).
+  business data (name, phone, address, website), produced only when all four values are confirmed.
 
 ## Success Criteria *(mandatory)*
 
@@ -215,26 +275,38 @@ markup or the hub logic.
 
 - **SC-001**: Both hubs render correctly in a mobile browser and show 100% of their entries in the
   priority order defined for each business.
-- **SC-002**: 100% of link-type entries lead to a placeholder destination clearly identifiable as
-  pending replacement.
+- **SC-002**: 100% of link-type entries whose destination is still unconfirmed show the inline
+  "pending confirmation" notice when tapped, and none of them navigates anywhere; each such entry is
+  identifiable as pending replacement in the business data.
 - **SC-003**: The project can be deployed as static content over HTTPS without any proprietary server
   component.
 - **SC-004**: Replacing all of a business's placeholder data with real data requires editing no
   structure/layout file (it is achieved by editing only the business data).
 - **SC-005**: A user comparing both hubs identifies them as visually distinct businesses (nocturnal
   vs. daytime register), not as the same template.
-- **SC-006**: On the tapas hub, "save contact" produces a vCard with the four data values (name,
-  phone, address, website) without any request to a proprietary backend.
+- **SC-006**: On the tapas hub, once the four data values (name, phone, address, website) are
+  confirmed, "save contact" produces a vCard containing all four without any request to a proprietary
+  backend; while any of them is still a placeholder, it produces no vCard and shows the pending notice
+  instead.
 - **SC-007**: No hub contains WiFi connection mechanisms, visit counters, or links to native
   apps/deep links.
-- **SC-008**: The essential content of each hub becomes visible quickly on a typical venue mobile
-  connection (near-instant perceived load), without blocking on heavy resources.
+- **SC-008**: The essential content of each hub (business identity and the full list of entries)
+  becomes visible in ≤1.5 s on a mid-range phone over a typical 4G connection, and in ≤3 s on a
+  degraded venue connection, with a total initial payload of ≤100 KB and no render-blocking
+  third-party resources.
+- **SC-009**: Each hub renders identically when opened with a table identifier parameter, with an
+  empty or unknown one, and with none at all (the parameter changes nothing a customer can perceive
+  in phase 1).
+- **SC-010**: Both hubs pass a WCAG 2.2 level AA check on every entry and text block, in each hub's
+  own visual register, with zero contrast or target-size failures.
 
 ## Assumptions
 
 - Traffic is 100% mobile after an NFC tap; the design is optimized for that case and not for desktop.
 - Physically writing the NFC tags (including the "Wi-Fi Simple Config" NDEF WiFi record) is a manual
-  task outside this repo; phase 1 only produces the hub pages.
+  task outside this repo; phase 1 only produces the hub pages. Whoever writes the tags is responsible
+  for including each table's identifier parameter in the URL, since phase 2 analytics depends on it
+  and rewriting the tags later would be manual work in both venues.
 - Both businesses already have their own working website that acts as the source of truth for their
   content (menu, gallery, reservations); the hub only links to it.
 - The Google place ID is used in a standard Google Maps writereview link; the exact format will be
