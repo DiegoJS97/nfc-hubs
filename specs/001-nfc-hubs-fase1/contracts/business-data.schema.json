@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nfc-hubs.local/contracts/business-data.schema.json",
+  "title": "Business data (NFC Hubs Phase 1)",
+  "description": "Contract for src/businesses/<slug>/business.json. The literal string '[PLACEHOLDER - replace]' marks an unconfirmed value and triggers the pending state (FR-024). A missing key or empty string is a data error, not a placeholder.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["slug", "name", "register", "lang", "wifiSsid", "placeId", "entries"],
+  "$defs": {
+    "placeholder": {
+      "const": "[PLACEHOLDER - replace]"
+    },
+    "httpsUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "nonEmpty": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "properties": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "URL segment and folder name."
+    },
+    "name": {
+      "$ref": "#/$defs/nonEmpty",
+      "description": "[ES] customer-facing business name. Never translated."
+    },
+    "register": {
+      "enum": ["nocturnal", "daytime"],
+      "description": "Visual identity register (FR-015)."
+    },
+    "lang": {
+      "const": "es",
+      "description": "Page language attribute (FR-023)."
+    },
+    "wifiSsid": {
+      "oneOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }],
+      "description": "Displayed as inert text only. Never a connection mechanism (FR-007, Principle IV)."
+    },
+    "placeId": {
+      "oneOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }],
+      "description": "Google place ID for the writereview link (FR-006)."
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phone", "address", "website"],
+      "description": "Present for tapas only. Source of the vCard (FR-020). Absent for the cocktail bar (FR-017).",
+      "properties": {
+        "phone": {
+          "oneOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }]
+        },
+        "address": {
+          "oneOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }]
+        },
+        "website": {
+          "oneOf": [{ "$ref": "#/$defs/httpsUrl" }, { "$ref": "#/$defs/placeholder" }]
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Array order IS the customer-facing priority order (FR-016, FR-018).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Stable key. Becomes the Phase 2 /r/<slug> route segment; renaming breaks analytics continuity."
+          },
+          "label": {
+            "$ref": "#/$defs/nonEmpty",
+            "description": "[ES] customer-facing label. Never translated."
+          },
+          "type": {
+            "enum": ["link", "review", "wifi", "vcard"]
+          },
+          "url": {
+            "oneOf": [{ "$ref": "#/$defs/httpsUrl" }, { "$ref": "#/$defs/placeholder" }],
+            "description": "Required when type=link; forbidden otherwise."
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "const": "link" } } },
+            "then": { "required": ["url"] },
+            "else": { "not": { "required": ["url"] } }
+          }
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "slug": { "const": "copas" } }, "required": ["slug"] },
+      "then": {
+        "not": { "required": ["contact"] },
+        "properties": { "register": { "const": "nocturnal" } }
+      }
+    },
+    {
+      "if": { "properties": { "slug": { "const": "tapas" } }, "required": ["slug"] },
+      "then": {
+        "required": ["contact"],
+        "properties": { "register": { "const": "daytime" } }
+      }
+    }
+  ]
+}
