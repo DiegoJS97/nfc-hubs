@@ -1,0 +1,26 @@
+﻿# Dependencias
+node_modules/
+
+# Variables de entorno y secretos
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# Salida de build de Eleventy
+_site/
+.cache/
+
+# Cloudflare
+.wrangler/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor (opcional, descomenta si no quieres compartir tu config de VS Code)
+# .vscode/
