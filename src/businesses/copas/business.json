@@ -1,0 +1,14 @@
+﻿{
+  "slug": "copas",
+  "name": "Bar de Copas (nombre pendiente)",
+  "register": "nocturnal",
+  "lang": "es",
+  "wifiSsid": "[PLACEHOLDER - replace]",
+  "placeId": "[PLACEHOLDER - replace]",
+  "entries": [
+    { "id": "carta", "label": "Ver carta de cócteles", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "resena", "label": "Danos tu opinión en Google", "type": "review" },
+    { "id": "instagram", "label": "Síguenos en Instagram", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "wifi", "label": "WiFi del local", "type": "wifi" }
+  ]
+}

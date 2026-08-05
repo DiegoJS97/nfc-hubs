@@ -1,0 +1,20 @@
+﻿{
+  "slug": "tapas",
+  "name": "Restaurante de Tapas (nombre pendiente)",
+  "register": "daytime",
+  "lang": "es",
+  "wifiSsid": "[PLACEHOLDER - replace]",
+  "placeId": "[PLACEHOLDER - replace]",
+  "contact": {
+    "phone": "[PLACEHOLDER - replace]",
+    "address": "[PLACEHOLDER - replace]",
+    "website": "[PLACEHOLDER - replace]"
+  },
+  "entries": [
+    { "id": "carta", "label": "Ver carta", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "resena", "label": "Danos tu opinión en Google", "type": "review" },
+    { "id": "contacto", "label": "Guardar contacto", "type": "vcard" },
+    { "id": "instagram", "label": "Síguenos en Instagram", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "wifi", "label": "WiFi del restaurante", "type": "wifi" }
+  ]
+}
