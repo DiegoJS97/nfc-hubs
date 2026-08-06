@@ -1,0 +1,21 @@
+# Cloudflare Pages build configuration (T037, build-only).
+#
+# This file declares HOW the site is built, not where it lives. No deployment has been made
+# and no hostname is settled.
+#
+# ⚠ `name` determines the default hostname (<name>.pages.dev). It is PROVISIONAL. The
+# production host must be final before any NFC tag is written, because the tag encodes the
+# full URL and re-tagging both venues is manual work outside this project
+# (specs/001-nfc-hubs-fase1/contracts/hub-url.md).
+name = "nfc-hubs"
+
+# Eleventy's output. Cloudflare Pages serves these files as-is: no server component, which is
+# what SC-003 requires.
+pages_build_output_dir = "_site"
+
+compatibility_date = "2026-08-06"
+
+# Phase 2 note (Constitution III): Cloudflare Pages was chosen over a purely static host
+# specifically so the /r/<entry-id> logging redirector can later run as a Pages Function on
+# the SAME origin. That keeps already-written tags valid across the phase transition - the
+# reason this platform choice is not interchangeable.

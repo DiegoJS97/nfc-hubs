@@ -126,12 +126,33 @@ tap to its table without anyone physically rewriting the tags.
 
 ## Deployment
 
-Not yet configured (T037). Output is plain static files in `_site/`, servable by any static
-host over HTTPS.
+Build configuration only — **nothing has been deployed and no hostname is settled.**
+
+`wrangler.toml` declares the build contract:
+
+| Setting | Value |
+|---------|-------|
+| Build command | `npm run build` |
+| Output directory | `_site` |
+| Project name | `nfc-hubs` *(provisional — sets the default `*.pages.dev` host)* |
+
+When the host is decided, deploying is:
+
+```bash
+npm run build
+npx wrangler pages deploy _site
+```
+
+Cloudflare Pages was chosen over a plain static host for a specific reason: the Phase 2
+`/r/<entry-id>` logging redirector can run as a Pages Function on the **same origin**, so tags
+written today stay valid when analytics arrives. A host without server-side routing would force
+either a migration or a second domain later.
 
 > ⚠ **Settle the final production host before writing any NFC tag.** The tag encodes the full
 > URL, and re-tagging both venues is manual work outside this project. Adding a custom domain
-> after tags are written invalidates every one of them.
+> after tags are written invalidates every one of them. Deploying is reversible; tag writing is
+> not — you can deploy to a temporary URL for device testing, provided no venue tags are
+> written against it.
 
 ## Verification that cannot be automated
 
