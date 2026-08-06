@@ -143,7 +143,7 @@ Per plan.md: shared engine in `src/_includes/` and `src/_engine/`, business cont
 - [x] T035 [P] Write `tests/budget/payload.spec.ts` asserting each hub's initial payload ≤100 KB and that zero requests go to a third-party origin (SC-008, FR-022, SC-007)
 - [x] T036 [P] Add a throttled Playwright run asserting essential content visible ≤1.5 s on emulated 4G and ≤3 s degraded, in `tests/budget/timing.spec.ts` (SC-008)
 - [x] T037 Configure Cloudflare Pages deployment: build command `npm run build`, output `_site/`, and document the `npx wrangler pages deploy _site` flow in `README.md` (SC-003, D2)
-- [ ] T038 Verify the Phase 2 seam by inspection: every destination resolves from `business.json` alone and no destination is hard-coded in any template, so a redirector can be introduced without touching markup (FR-004, Principle III)
+- [x] T038 Verify the Phase 2 seam by inspection: every destination resolves from `business.json` alone and no destination is hard-coded in any template, so a redirector can be introduced without touching markup (FR-004, Principle III)
 - [ ] T039 Execute the manual device checks from quickstart.md and record the outcomes: **iOS Safari vCard import** (the known-fragile assumption, D5), Android Chrome vCard, nocturnal contrast in low light, and a real NFC tap with the phone locked and unlocked (FR-010, Principle VIII)
 - [ ] T040 Run the full quickstart.md validation end-to-end and confirm every SC-001…SC-010 row passes
 
