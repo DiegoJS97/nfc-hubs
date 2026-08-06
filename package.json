@@ -1,0 +1,27 @@
+{
+  "name": "nfc-hubs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NFC hub pages for hospitality businesses - Phase 1 (shared engine, static output)",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "eleventy --serve",
+    "build": "eleventy",
+    "serve": "node scripts/serve-static.mjs",
+    "test": "npm run test:e2e && npm run test:a11y && npm run test:budget",
+    "test:e2e": "playwright test tests/e2e",
+    "test:a11y": "playwright test tests/a11y",
+    "test:budget": "playwright test tests/budget",
+    "audit:placeholders": "node scripts/audit-placeholders.mjs"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0",
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.49.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

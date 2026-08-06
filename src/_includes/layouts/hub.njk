@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="{{ businesses[slug].lang }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ businesses[slug].name }}</title>
+
+    {#
+      First-party stylesheets only. No externally hosted font, stylesheet, script, or
+      tracker appears anywhere on this page (FR-022, D7) - the system font stack in
+      base.css is what keeps that promise cheap.
+    #}
+    <link rel="stylesheet" href="/_engine/base.css" />
+    <link rel="stylesheet" href="/businesses/{{ slug }}/theme.css" />
+  </head>
+
+  <body class="hub hub--{{ businesses[slug].register }}">
+    <a class="skip-link" href="#entries">{{ site.ui.skipToContent }}</a>
+
+    {% set business = businesses[slug] %}
+
+    <main class="hub__main">
+      <header class="hub__header">
+        <h1 class="hub__name">{{ business.name }}</h1>
+      </header>
+
+      {#
+        Array order IS the customer-facing priority order (FR-016, FR-018, SC-001).
+        Nothing here sorts, filters, or reorders - validate.js already asserted the
+        sequence at build time, so what the data says is what the customer sees.
+      #}
+      <ul class="entries" id="entries">
+        {% for entry in business.entries %}
+          {% set state = resolve.resolveEntry(entry, business) %}
+          {% if entry.type == "wifi" %}
+            {% include "partials/entry-wifi.njk" %}
+          {% elif entry.type == "vcard" %}
+            {% include "partials/entry-vcard.njk" %}
+          {% elif state == "confirmed" %}
+            {% include "partials/entry-link.njk" %}
+          {% else %}
+            {% include "partials/entry-pending.njk" %}
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </main>
+
+    {#
+      Deferred so it never blocks the first render. The page is fully readable without it;
+      its only job is showing the pending notice on tap (FR-024).
+    #}
+    <script src="/_engine/pending.js" defer></script>
+  </body>
+</html>

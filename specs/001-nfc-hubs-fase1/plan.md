@@ -18,8 +18,11 @@ at WCAG 2.2 AA.
 
 **Language/Version**: Node.js 24 LTS (build-time only); HTML5, CSS3, ES2020 vanilla JS (runtime)
 
-**Primary Dependencies**: Eleventy 3.x (static site generator, Nunjucks templates). No runtime
-dependencies and no client-side framework.
+**Primary Dependencies**: Eleventy 3.x (static site generator, Nunjucks templates), plus `ajv` and
+`ajv-formats` to validate each `business.json` against
+[contracts/business-data.schema.json](./contracts/business-data.schema.json) at build time. All three
+are build-time devDependencies: no runtime dependencies, no client-side framework, and nothing above
+is shipped to the browser.
 
 **Storage**: N/A — no database. Business values live in version-controlled JSON files.
 
@@ -39,7 +42,8 @@ degraded venue connection (SC-008)
 (FR-022); no backend (FR-002); no localStorage/sessionStorage or visit counters (FR-012); WCAG 2.2 AA
 (FR-023)
 
-**Scale/Scope**: 2 businesses, 2 hub pages, 6 + 8 entries respectively. Table count per venue is
+**Scale/Scope**: 2 businesses, 2 hub pages, 7 + 8 entries respectively (copas: 6 actions + WiFi;
+tapas: 6 actions + WiFi + vCard). Table count per venue is
 unbounded but costs nothing — all tables of a business share one page, differing only in the `?m=`
 parameter.
 

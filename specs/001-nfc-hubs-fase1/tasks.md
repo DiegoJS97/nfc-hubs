@@ -27,7 +27,8 @@ independently.
 Per plan.md: shared engine in `src/_includes/` and `src/_engine/`, business content in
 `src/businesses/<slug>/`, tests in `tests/`. Build output is `_site/`.
 
-⚠ **Node 24 LTS must be installed before Phase 1.** It is not present on the current machine.
+⚠ **Node 24 LTS is required** (Active LTS; see research.md D1). Pinned in `.nvmrc` and enforced by
+`engines.node` in `package.json`.
 
 ---
 

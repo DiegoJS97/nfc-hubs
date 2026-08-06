@@ -1,0 +1,12 @@
+{#
+  A confirmed entry: a real <a href> to the external destination (FR-003, FR-008).
+
+  The href comes from resolveHref(), which reads business.json and throws if the entry is
+  actually pending. No destination is written here - that is what lets Phase 2 reroute
+  everything through /r/<entry-id> by changing one template, not each button (FR-004).
+#}
+<li class="entries__item">
+  <a class="entry entry--link" href="{{ resolve.resolveHref(entry, business) }}" rel="noopener">
+    <span class="entry__label">{{ entry.label }}</span>
+  </a>
+</li>

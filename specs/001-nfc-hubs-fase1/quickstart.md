@@ -51,7 +51,7 @@ npm run test:budget      # payload ceiling + no third-party requests
 
 | Criterion | How it's validated | Expected outcome |
 |-----------|--------------------|------------------|
-| SC-001 | `test:e2e` asserts the rendered entry sequence against the spec order | copas: 6 actions + WiFi last; tapas: 7 actions + WiFi + vCard |
+| SC-001 | `test:e2e` asserts the rendered entry sequence against the spec order | copas: 6 actions + WiFi last (7 entries); tapas: 6 actions + WiFi + vCard (8 entries) |
 | SC-002 | `test:e2e` taps every unconfirmed entry | Pending notice shown; URL unchanged (no navigation) |
 | SC-003 | `npm run build` then serve `_site/` as static files | Both hubs work with no server process |
 | SC-004 | Edit only `src/businesses/<slug>/business.json`, rebuild | Destination changes; `git status` shows no other source file touched |

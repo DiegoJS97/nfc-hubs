@@ -1,0 +1,198 @@
+/*
+ * Shared engine stylesheet (FR-023, D7).
+ *
+ * Structure, layout, and the accessibility floor - identical for every business. Colour and
+ * character come from each business's theme.css via the custom properties declared here, so
+ * the two hubs can look like genuinely different venues (FR-015) without either one being
+ * able to drop below the WCAG 2.2 AA baseline.
+ *
+ * No @import, no web font, no external URL of any kind (FR-022).
+ */
+
+/* ---- Reset ------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body,
+h1,
+p,
+ul,
+figure {
+  margin: 0;
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- Theme contract ---------------------------------------------------------------- */
+
+/*
+ * Neutral fallbacks. A theme.css is expected to override these; the values here exist so a
+ * missing or half-written theme degrades to something readable rather than to invisible
+ * text on an invisible background.
+ */
+:root {
+  --hub-bg: #ffffff;
+  --hub-fg: #16161a;
+  --hub-muted: #55555f;
+  --entry-bg: #f2f2f5;
+  --entry-fg: #16161a;
+  --entry-border: #c9c9d1;
+  --entry-radius: 12px;
+  --focus-ring: #0b5cd8;
+  --hub-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* The FR-023 floor. Themes may raise these, never lower them. */
+  --target-min: 44px;
+}
+
+/* ---- Page -------------------------------------------------------------------------- */
+
+body {
+  background: var(--hub-bg);
+  color: var(--hub-fg);
+  font-family: var(--hub-font);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+
+  /* Mobile-first and mobile-only: real traffic is 100% phones after a tap (FR-009). */
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+.hub__main {
+  /* Comfortable one-handed column; caps the line length if this is ever opened wide. */
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.hub__header {
+  margin-bottom: 1.75rem;
+}
+
+.hub__name {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Entries ----------------------------------------------------------------------- */
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/*
+ * Every entry shares one box so the list reads as a single set of options, whether the
+ * entry is a link, a pending button, or inert WiFi text.
+ */
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: var(--target-min);
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--entry-border);
+  border-radius: var(--entry-radius);
+  background: var(--entry-bg);
+  color: var(--entry-fg);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+
+.entry--link,
+.entry--pending {
+  /* Interactive entries must clear 44x44 CSS px in both axes (FR-023). */
+  min-height: var(--target-min);
+  cursor: pointer;
+}
+
+.entry__label {
+  font-weight: 600;
+}
+
+.entry__value {
+  color: var(--hub-muted);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Pending state ----------------------------------------------------------------- */
+
+/*
+ * Pending is signalled by the badge TEXT, not by colour. Removing every colour from this
+ * rule would still leave the state perceivable, which is what FR-023 requires.
+ */
+.entry--pending {
+  border-style: dashed;
+}
+
+.entry__badge {
+  flex: none;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.entry__notice {
+  margin-top: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 4px solid currentColor;
+  font-size: 0.9375rem;
+}
+
+.entry__notice[hidden] {
+  /* Belt and braces: some resets set [hidden] elements back to display:block. */
+  display: none;
+}
+
+/* ---- Focus and skip link ----------------------------------------------------------- */
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 1;
+  padding: 0.75rem 1rem;
+  background: var(--entry-bg);
+  color: var(--entry-fg);
+  border-radius: var(--entry-radius);
+}
+
+/* ---- Motion ------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

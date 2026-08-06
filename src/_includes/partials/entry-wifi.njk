@@ -1,0 +1,23 @@
+{#
+  WiFi: inert informational text. Never a link, never a button, never a Web NFC call, never
+  a connection attempt (FR-007, Principle IV, SC-007).
+
+  The real connection is the tag's own "Wi-Fi Simple Config" NDEF record, written manually
+  and out of scope for this repo. Only the network NAME is shown - business.json carries no
+  WiFi password field, and none must ever be added here.
+
+  Deliberately no <a>, no <button>, no tabindex, no role, and no event target: there is
+  nothing on this element for a customer to activate.
+#}
+<li class="entries__item">
+  <div class="entry entry--wifi">
+    <span class="entry__label">{{ entry.label }}</span>
+    <span class="entry__value">
+      {%- if state == "confirmed" -%}
+        {{ business.wifiSsid }}
+      {%- else -%}
+        {{ site.ui.pendingBadge }}
+      {%- endif -%}
+    </span>
+  </div>
+</li>

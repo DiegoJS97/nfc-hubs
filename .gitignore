@@ -14,6 +14,14 @@ _site/
 # Cloudflare
 .wrangler/
 
+# Resultados de tests (Playwright)
+test-results/
+playwright-report/
+
+# Claude Code: ajustes locales de cada persona.
+# .claude/settings.json SI se versiona (reglas compartidas del repo).
+.claude/settings.local.json
+
 # Logs
 *.log
 npm-debug.log*

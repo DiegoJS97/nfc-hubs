@@ -1,0 +1,26 @@
+{#
+  A pending entry: renders normally in its priority position with its own label, but tapping
+  it shows an inline notice instead of navigating (FR-024).
+
+  A <button>, not a disabled <a>: assistive technology must announce it as an action that
+  does something, not as a link that goes nowhere. It is never silently unresponsive.
+
+  The pending state is carried by a visible text badge as well as by styling, so it is
+  perceivable beyond colour alone (FR-023). The notice is in the markup rather than created
+  by script, so it exists even before pending.js runs.
+#}
+<li class="entries__item">
+  <button
+    class="entry entry--pending"
+    type="button"
+    data-pending
+    aria-describedby="pending-{{ entry.id }}"
+  >
+    <span class="entry__label">{{ entry.label }}</span>
+    <span class="entry__badge">{{ site.ui.pendingBadge }}</span>
+  </button>
+
+  <p class="entry__notice" id="pending-{{ entry.id }}" role="status" hidden>
+    {{ site.ui.pendingNotice }}
+  </p>
+</li>

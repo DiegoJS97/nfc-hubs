@@ -1,6 +1,6 @@
-﻿{
+{
   "slug": "tapas",
-  "name": "Restaurante de Tapas (nombre pendiente)",
+  "name": "[PLACEHOLDER - replace]",
   "register": "daytime",
   "lang": "es",
   "wifiSsid": "[PLACEHOLDER - replace]",
@@ -11,10 +11,23 @@
     "website": "[PLACEHOLDER - replace]"
   },
   "entries": [
-    { "id": "carta", "label": "Ver carta", "type": "link", "url": "[PLACEHOLDER - replace]" },
-    { "id": "resena", "label": "Danos tu opinión en Google", "type": "review" },
-    { "id": "contacto", "label": "Guardar contacto", "type": "vcard" },
-    { "id": "instagram", "label": "Síguenos en Instagram", "type": "link", "url": "[PLACEHOLDER - replace]" },
-    { "id": "wifi", "label": "WiFi del restaurante", "type": "wifi" }
+    { "id": "menu", "label": "Carta", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "reserve", "label": "Reservar mesa", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    {
+      "id": "takeaway",
+      "label": "Para llevar / catering",
+      "type": "link",
+      "url": "[PLACEHOLDER - replace]"
+    },
+    { "id": "review", "label": "Reseña Google", "type": "review" },
+    {
+      "id": "newsletter",
+      "label": "Newsletter / club de socios",
+      "type": "link",
+      "url": "[PLACEHOLDER - replace]"
+    },
+    { "id": "instagram", "label": "Instagram", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "wifi", "label": "WiFi", "type": "wifi" },
+    { "id": "vcard", "label": "Guardar contacto", "type": "vcard" }
   ]
 }

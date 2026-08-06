@@ -39,11 +39,11 @@
       "description": "Page language attribute (FR-023)."
     },
     "wifiSsid": {
-      "oneOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }],
+      "anyOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }],
       "description": "Displayed as inert text only. Never a connection mechanism (FR-007, Principle IV)."
     },
     "placeId": {
-      "oneOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }],
+      "anyOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }],
       "description": "Google place ID for the writereview link (FR-006)."
     },
     "contact": {
@@ -53,10 +53,10 @@
       "description": "Present for tapas only. Source of the vCard (FR-020). Absent for the cocktail bar (FR-017).",
       "properties": {
         "phone": {
-          "oneOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }]
+          "anyOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }]
         },
         "address": {
-          "oneOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }]
+          "anyOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }]
         },
         "website": {
           "oneOf": [{ "$ref": "#/$defs/httpsUrl" }, { "$ref": "#/$defs/placeholder" }]
