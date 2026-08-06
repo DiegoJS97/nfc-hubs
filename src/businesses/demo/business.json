@@ -4,7 +4,7 @@
   "register": "nocturnal",
   "lang": "es",
   "wifiSsid": "VelaYSal_Invitados",
-  "placeId": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+  "placeId": "[PLACEHOLDER - replace]",
   "contact": {
     "phone": "+34 600 000 000",
     "address": "Calle del Ejemplo 12, 28013 Madrid",
@@ -22,7 +22,7 @@
       "id": "maps",
       "label": "Cómo llegar",
       "type": "link",
-      "url": "https://www.google.com/maps/place/?q=place_id:ChIJN1t_tDeuEmsRUsoyG83frY4"
+      "url": "[PLACEHOLDER - replace]"
     },
     { "id": "instagram", "label": "Instagram", "type": "link", "url": "https://www.instagram.com/" },
     { "id": "review", "label": "Reseña Google", "type": "review" },

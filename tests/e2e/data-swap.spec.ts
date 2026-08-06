@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 import { test, expect } from "@playwright/test";
 
-import { hubs } from "../lib/hubs";
+import { hubs, pendingCount } from "../lib/hubs";
 
 /**
  * Confirming (and un-confirming) real data is a DATA edit - SC-004, FR-014, FR-024.
@@ -26,8 +26,15 @@ const demo = hubs().find((hub) => hub.slug === "demo")!;
 const PLACEHOLDER = "[PLACEHOLDER - replace]";
 const CONFIRMED_URL = demo.data.entries[0].url!;
 
-/** 5 destinations (4 links + review). WiFi is never interactive, so it never goes pending. */
-const ACTIONABLE_ENTRIES = 5;
+/**
+ * The demo does not start from zero pending entries: `placeId` is deliberately unconfirmed.
+ * Both counts are derived rather than written down, so this test keeps measuring a DELTA of
+ * exactly one entry however the demo's data changes.
+ */
+const BASELINE_PENDING = pendingCount(demo.data);
+const BASELINE_LINKS = demo.data.entries.filter(
+  (entry) => entry.type !== "wifi" && entry.url !== PLACEHOLDER && entry.type === "link",
+).length;
 
 test.describe("data swap", () => {
   test.skip(
@@ -40,11 +47,11 @@ test.describe("data swap", () => {
   }) => {
     test.setTimeout(120_000);
 
-    // Baseline: the first entry is a live link and nothing on the page is pending.
+    // Baseline: the first entry is a live link, alongside whatever is already pending.
     await page.goto("/demo/");
     const baseline = page.locator(".entries__item").first();
     await expect(baseline.locator("a.entry--link")).toHaveAttribute("href", CONFIRMED_URL);
-    await expect(page.locator("[data-pending]")).toHaveCount(0);
+    await expect(page.locator("[data-pending]")).toHaveCount(BASELINE_PENDING);
 
     const original = readFileSync(demo.dataPath, "utf8");
 
@@ -67,8 +74,8 @@ test.describe("data swap", () => {
       await expect(pending.locator(".entry__label")).toHaveText(demo.data.entries[0].label);
 
       // Exactly one entry changed state: the swap is scoped to the value that changed.
-      await expect(page.locator("[data-pending]")).toHaveCount(1);
-      await expect(page.locator(".entries__item a.entry")).toHaveCount(ACTIONABLE_ENTRIES - 1);
+      await expect(page.locator("[data-pending]")).toHaveCount(BASELINE_PENDING + 1);
+      await expect(page.locator(".entries__item a.entry")).toHaveCount(BASELINE_LINKS - 1);
 
       // FR-024: tapping shows the notice and navigates nowhere.
       const urlBefore = page.url();
@@ -96,7 +103,7 @@ test.describe("data swap", () => {
       "href",
       CONFIRMED_URL,
     );
-    await expect(page.locator("[data-pending]")).toHaveCount(0);
+    await expect(page.locator("[data-pending]")).toHaveCount(BASELINE_PENDING);
     await expect(page.locator("#pending-menu")).toHaveCount(0);
   });
 });

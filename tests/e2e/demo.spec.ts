@@ -3,16 +3,17 @@ import { test, expect } from "@playwright/test";
 import { hubs, pendingCount, hasVcard } from "../lib/hubs";
 
 /**
- * The generic archetype, rendered as a finished hub.
+ * The generic archetype, rendered as a hub a prospect can be shown.
  *
  * `demo` is one INSTANCE of the archetype, not a business category: its entry set is chosen
  * in business.json and is not mandated anywhere. So this file asserts what a customer of THIS
  * venue sees, and deliberately does not assert a sequence any other business must copy.
  *
- * Every value in the data is confirmed, which makes the shape of the assertions different
- * from the old copas/tapas specs: there is nothing pending here, so the claim under test is
- * that every entry is a live destination. The pending behaviour (FR-024) is exercised by
- * tests/e2e/data-swap.spec.ts, which puts the sentinel back and rebuilds.
+ * Its data is fully populated EXCEPT `placeId`, which is deliberately still the sentinel.
+ * Inventing one would mean the review button files a review against a real, unrelated venue
+ * and "Cómo llegar" navigates a prospect to a city the demo is not in - Constitution VII
+ * exists for exactly that failure. Leaving it pending is honest, and it doubles as a live
+ * demonstration of the pending state.
  *
  * [ES] labels are quoted verbatim and must never be translated.
  */
@@ -24,6 +25,12 @@ const EXPECTED_LABELS = [
   "Reseña Google",
   "WiFi",
 ];
+
+/** The two entries that depend on `placeId`, and so are pending together. */
+const PENDING_LABELS = ["Cómo llegar", "Reseña Google"];
+
+/** Confirmed destinations. WiFi is inert text and never an anchor. */
+const CONFIRMED_LINKS = EXPECTED_LABELS.length - PENDING_LABELS.length - 1;
 
 const demo = hubs().find((hub) => hub.slug === "demo")!;
 
@@ -53,22 +60,26 @@ test.describe("demo hub", () => {
     ]);
   });
 
-  test("the demo is fully populated: no entry is pending and no sentinel reaches the page", async ({
+  test("exactly the place-ID-dependent entries are pending, and no sentinel text is rendered", async ({
     page,
   }) => {
     // Both directions: what the data implies, and what the page actually rendered. Asserting
     // only the page would let a data regression that also breaks rendering pass unnoticed.
-    expect(pendingCount(demo.data)).toBe(0);
+    expect(pendingCount(demo.data)).toBe(PENDING_LABELS.length);
 
-    await expect(page.locator("[data-pending]")).toHaveCount(0);
-    await expect(page.locator(".entry__badge")).toHaveCount(0);
+    const pending = page.locator("[data-pending]");
+    await expect(pending).toHaveCount(PENDING_LABELS.length);
+    expect(
+      (await pending.locator(".entry__label").allTextContents()).map((label) => label.trim()),
+    ).toEqual(PENDING_LABELS);
+
+    // The sentinel marks data; it must never become something a customer reads.
     expect(await page.locator("body").innerText()).not.toContain("PLACEHOLDER");
   });
 
-  test("every actionable entry is a real link to a real destination", async ({ page }) => {
-    // One anchor per entry except WiFi, which is inert text by design.
+  test("every confirmed entry is a real link to a real destination", async ({ page }) => {
     const links = page.locator(".entries__item a.entry");
-    await expect(links).toHaveCount(EXPECTED_LABELS.length - 1);
+    await expect(links).toHaveCount(CONFIRMED_LINKS);
 
     const hrefs = await links.evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute("href") ?? ""),
@@ -80,35 +91,39 @@ test.describe("demo hub", () => {
       expect(href).not.toContain("undefined");
     }
 
-    expect(hrefs[0]).toBe("https://example.com/carta");
+    expect(hrefs[0]).toBe(demo.data.entries[0].url);
   });
 
-  test("FR-006: the review entry uses the writereview format with the place ID", async ({
-    page,
-  }) => {
-    const review = page.locator(".entries__item a.entry").nth(4);
-    await expect(review).toHaveAttribute(
-      "href",
-      `https://search.google.com/local/writereview?placeid=${demo.data.placeId}`,
-    );
+  test("FR-024: a pending entry shows its notice and navigates nowhere", async ({ page }) => {
+    const pending = page.locator("[data-pending]");
+    const count = await pending.count();
+    expect(count).toBe(PENDING_LABELS.length);
+
+    for (let i = 0; i < count; i += 1) {
+      const entry = pending.nth(i);
+      const urlBefore = page.url();
+
+      await entry.click();
+      expect(page.url()).toBe(urlBefore);
+
+      const noticeId = await entry.getAttribute("aria-describedby");
+      expect(noticeId).toBeTruthy();
+      await expect(page.locator(`#${noticeId}`)).toBeVisible();
+
+      // Perceivable beyond colour alone (FR-023): the state is carried by badge TEXT.
+      await expect(entry.locator(".entry__badge")).toHaveText(/\S/);
+    }
   });
 
-  test("the maps entry is a plain link to the place page, not a saved-list action", async ({
-    page,
-  }) => {
-    const maps = page.locator(".entries__item a.entry").nth(2);
+  test("no entry points at a venue this business is not", async ({ page }) => {
+    // The guard against the failure Constitution VII is about. While placeId is unconfirmed,
+    // nothing on the page may resolve to a Google place or review destination - not through
+    // the review entry, and not through a maps URL someone pasted in as a literal.
+    const hrefs = await page
+      .locator("a[href]")
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href") ?? ""));
 
-    // Asserted on the href rather than on the entry TYPE, so this keeps holding when the
-    // entry flips from an interim `link` binding to the `maps` type after the schema enum is
-    // approved. The destination is the contract; the binding is an implementation detail.
-    const href = await maps.getAttribute("href");
-    expect(href).toBe(
-      `https://www.google.com/maps/place/?q=place_id:${demo.data.placeId}`,
-    );
-
-    // A link and nothing else: no web API can add a place to a Google saved list, so there
-    // must be no script-driven control here pretending otherwise.
-    await expect(maps).toHaveJSProperty("tagName", "A");
+    expect(hrefs.filter((href) => /google\.com\/maps|writereview|place_id/.test(href))).toEqual([]);
   });
 
   test("SC-007: WiFi is inert text, not an interactive control", async ({ page }) => {
