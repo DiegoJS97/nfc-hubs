@@ -36,12 +36,12 @@ Per plan.md: shared engine in `src/_includes/` and `src/_engine/`, business cont
 
 **Purpose**: Project initialization and toolchain
 
-- [ ] T001 Create the directory skeleton per plan.md: `src/_data/`, `src/_includes/layouts/`, `src/_includes/partials/`, `src/_engine/`, `src/businesses/copas/`, `src/businesses/tapas/`, `tests/e2e/`, `tests/a11y/`, `tests/budget/`
-- [ ] T002 Create `package.json`: Eleventy 3.x devDependency, `"engines": { "node": ">=24" }`, and scripts `dev`, `build`, `test`, `test:e2e`, `test:a11y`, `test:budget`, `audit:placeholders`
-- [ ] T003 [P] Create `eleventy.config.js`: input `src/`, output `_site/`, passthrough copy for `src/_engine/` assets, and per-business permalinks producing `_site/copas/index.html` and `_site/tapas/index.html`
-- [ ] T004 [P] Create `.gitignore` covering `node_modules/`, `_site/`, `test-results/`, `playwright-report/`
-- [ ] T005 [P] Create `playwright.config.ts` with mobile-emulated projects only (iPhone via WebKit, Pixel via Chromium), base URL `http://localhost:8080` — no desktop viewport, per FR-009
-- [ ] T006 [P] Create `.nvmrc` pinning Node 24 LTS
+- [x] T001 Create the directory skeleton per plan.md: `src/_data/`, `src/_includes/layouts/`, `src/_includes/partials/`, `src/_engine/`, `src/businesses/copas/`, `src/businesses/tapas/`, `tests/e2e/`, `tests/a11y/`, `tests/budget/`
+- [x] T002 Create `package.json`: Eleventy 3.x devDependency, `"engines": { "node": ">=24" }`, and scripts `dev`, `build`, `test`, `test:e2e`, `test:a11y`, `test:budget`, `audit:placeholders`
+- [x] T003 [P] Create `eleventy.config.js`: input `src/`, output `_site/`, passthrough copy for `src/_engine/` assets, and per-business permalinks producing `_site/copas/index.html` and `_site/tapas/index.html`
+- [x] T004 [P] Create `.gitignore` covering `node_modules/`, `_site/`, `test-results/`, `playwright-report/`
+- [x] T005 [P] Create `playwright.config.ts` with mobile-emulated projects only (iPhone via WebKit, Pixel via Chromium), base URL `http://localhost:8080` — no desktop viewport, per FR-009
+- [x] T006 [P] Create `.nvmrc` pinning Node 24 LTS
 
 **Checkpoint**: `npm install` succeeds and `npm run build` produces an empty-but-valid `_site/`
 
@@ -53,15 +53,15 @@ Per plan.md: shared engine in `src/_includes/` and `src/_engine/`, business cont
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Implement the placeholder sentinel and resolution helper in `src/_data/resolve.js`: export `PLACEHOLDER = "[PLACEHOLDER - replace]"`, `isPlaceholder(value)`, and `resolveEntry(entry, business)` returning `confirmed` | `pending` per the resolution table in data-model.md
-- [ ] T008 [P] Implement build-time data validation in `src/_data/validate.js` against `specs/001-nfc-hubs-fase1/contracts/business-data.schema.json`; the build MUST fail on a missing key, empty string, or `null` so a typo can never be silently treated as a placeholder (data-model.md rule)
-- [ ] T009 [P] Create the shared hub layout in `src/_includes/layouts/hub.njk`: `<html lang>` from `business.lang`, semantic list of entries in array order, no external stylesheet/script/font references (FR-022)
-- [ ] T010 [P] Create the engine stylesheet `src/_engine/base.css`: reset, system font stack (no web fonts, D7), interactive targets ≥44×44 CSS px, visible focus indicator, layout primitives (FR-023)
-- [ ] T011 [P] Create `src/_includes/partials/entry-link.njk` rendering a confirmed entry as `<a href>` (FR-003)
-- [ ] T012 [P] Create `src/_includes/partials/entry-pending.njk` rendering a pending entry as `<button type="button">` carrying the pending state, announced to assistive technology and distinguished by more than colour (FR-024, FR-023)
-- [ ] T013 [P] Create `src/_includes/partials/entry-wifi.njk` rendering the SSID as inert non-interactive text — never a link, button, or Web NFC call (FR-007, Principle IV)
-- [ ] T014 [P] Create `src/_engine/pending.js`: on activating a pending entry show the [ES] notice (e.g. `"Pendiente de confirmar"`) without navigating; must not use localStorage/sessionStorage (FR-012, FR-024)
-- [ ] T015 [P] Create `src/_data/site.json` for business-agnostic site values
+- [x] T007 Implement the placeholder sentinel and resolution helper in `src/_data/resolve.js`: export `PLACEHOLDER = "[PLACEHOLDER - replace]"`, `isPlaceholder(value)`, and `resolveEntry(entry, business)` returning `confirmed` | `pending` per the resolution table in data-model.md
+- [x] T008 [P] Implement build-time data validation in `src/_data/validate.js` against `specs/001-nfc-hubs-fase1/contracts/business-data.schema.json`; the build MUST fail on a missing key, empty string, or `null` so a typo can never be silently treated as a placeholder (data-model.md rule)
+- [x] T009 [P] Create the shared hub layout in `src/_includes/layouts/hub.njk`: `<html lang>` from `business.lang`, semantic list of entries in array order, no external stylesheet/script/font references (FR-022)
+- [x] T010 [P] Create the engine stylesheet `src/_engine/base.css`: reset, system font stack (no web fonts, D7), interactive targets ≥44×44 CSS px, visible focus indicator, layout primitives (FR-023)
+- [x] T011 [P] Create `src/_includes/partials/entry-link.njk` rendering a confirmed entry as `<a href>` (FR-003)
+- [x] T012 [P] Create `src/_includes/partials/entry-pending.njk` rendering a pending entry as `<button type="button">` carrying the pending state, announced to assistive technology and distinguished by more than colour (FR-024, FR-023)
+- [x] T013 [P] Create `src/_includes/partials/entry-wifi.njk` rendering the SSID as inert non-interactive text — never a link, button, or Web NFC call (FR-007, Principle IV)
+- [x] T014 [P] Create `src/_engine/pending.js`: on activating a pending entry show the [ES] notice (e.g. `"Pendiente de confirmar"`) without navigating; must not use localStorage/sessionStorage (FR-012, FR-024)
+- [x] T015 [P] Create `src/_data/site.json` for business-agnostic site values
 
 **Checkpoint**: The engine renders a hub from any conforming `business.json`; both hubs can now be built in parallel
 
@@ -77,15 +77,15 @@ Per plan.md: shared engine in `src/_includes/` and `src/_engine/`, business cont
 
 > Write these first and confirm they FAIL before implementing
 
-- [ ] T016 [P] [US1] Write `tests/e2e/copas.spec.ts`: entry order per FR-016 (SC-001), every unconfirmed entry shows the notice and does not navigate (SC-002), WiFi is not interactive (SC-007), no vCard entry present (FR-017)
-- [ ] T017 [P] [US1] Write `tests/e2e/table-param.spec.ts` covering copas: renders identically for `?m=12`, `?m=`, `?m=zzz`, and no parameter, and the parameter is never displayed or stored (SC-009, FR-021)
+- [x] T016 [P] [US1] Write `tests/e2e/copas.spec.ts`: entry order per FR-016 (SC-001), every unconfirmed entry shows the notice and does not navigate (SC-002), WiFi is not interactive (SC-007), no vCard entry present (FR-017)
+- [x] T017 [P] [US1] Write `tests/e2e/table-param.spec.ts` covering copas: renders identically for `?m=12`, `?m=`, `?m=zzz`, and no parameter, and the parameter is never displayed or stored (SC-009, FR-021)
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Create `src/businesses/copas/business.json`: `slug: "copas"`, `register: "nocturnal"`, `lang: "es"`, every value `[PLACEHOLDER - replace]`, no `contact` key (FR-017), and the 7 entries in exact FR-016 order with ids `menu`, `reserve`, `playlist`, `events`, `instagram`, `review`, `wifi` — ids are the Phase 2 `/r/<id>` route segments (contracts/hub-url.md)
-- [ ] T019 [P] [US1] Create `src/businesses/copas/theme.css`: nocturnal / experiential register, distinct from tapas and not a recolored template (FR-015), meeting the contrast floor in FR-023
-- [ ] T020 [US1] Create `src/businesses/copas/index.njk` binding this business to `layouts/hub.njk`
-- [ ] T021 [US1] Make T016 and T017 pass for `/copas/`
+- [x] T018 [US1] Create `src/businesses/copas/business.json`: `slug: "copas"`, `register: "nocturnal"`, `lang: "es"`, every value `[PLACEHOLDER - replace]`, no `contact` key (FR-017), and the 7 entries in exact FR-016 order with ids `menu`, `reserve`, `playlist`, `events`, `instagram`, `review`, `wifi` — ids are the Phase 2 `/r/<id>` route segments (contracts/hub-url.md)
+- [x] T019 [P] [US1] Create `src/businesses/copas/theme.css`: nocturnal / experiential register, distinct from tapas and not a recolored template (FR-015), meeting the contrast floor in FR-023
+- [x] T020 [US1] Create `src/businesses/copas/index.njk` binding this business to `layouts/hub.njk`
+- [x] T021 [US1] Make T016 and T017 pass for `/copas/`
 
 **Checkpoint**: The cocktail-bar hub is fully functional and demoable on its own — this is the MVP
 
@@ -99,17 +99,17 @@ Per plan.md: shared engine in `src/_includes/` and `src/_engine/`, business cont
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Write `tests/e2e/tapas.spec.ts`: entry order per FR-018 (SC-001), pending entries show the notice (SC-002), WiFi inert (SC-007), and the vCard path in both data states — all four confirmed yields a `.vcf` containing all four values, any placeholder yields the notice and no file (SC-006, FR-020)
-- [ ] T023 [US2] Extend `tests/e2e/table-param.spec.ts` with the same four URL variants for tapas (shared file with T017 — do not run these two in parallel)
+- [x] T022 [P] [US2] Write `tests/e2e/tapas.spec.ts`: entry order per FR-018 (SC-001), pending entries show the notice (SC-002), WiFi inert (SC-007), and the vCard path in both data states — all four confirmed yields a `.vcf` containing all four values, any placeholder yields the notice and no file (SC-006, FR-020)
+- [x] T023 [US2] Extend `tests/e2e/table-param.spec.ts` with the same four URL variants for tapas (shared file with T017 — do not run these two in parallel)
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Create `src/businesses/tapas/business.json`: `slug: "tapas"`, `register: "daytime"`, `lang: "es"`, a `contact` block (`phone`, `address`, `website`) all `[PLACEHOLDER - replace]`, and the 8 entries in exact FR-018 order with ids `menu`, `reserve`, `takeaway`, `review`, `newsletter`, `instagram`, `wifi`, `vcard`
-- [ ] T025 [P] [US2] Create `src/businesses/tapas/theme.css`: daytime / product register, clearly distinct from the copas identity (FR-015), meeting FR-023 contrast
-- [ ] T026 [P] [US2] Create `src/_engine/vcard.js` per contracts/vcard.md: vCard 3.0, `VERSION:3.0`, UTF-8, CRLF line endings, RFC 2426 escaping of `,` `;` `\` in every value, Blob + `<a download="tapas.vcf">`, object URL revoked after use, no network request
-- [ ] T027 [US2] Create `src/_includes/partials/entry-vcard.njk` enforcing the all-or-nothing precondition: generate only when `name`, `phone`, `address`, and `website` are all confirmed; otherwise render as pending (FR-020, FR-024) — never a partial card
-- [ ] T028 [US2] Create `src/businesses/tapas/index.njk` binding this business to `layouts/hub.njk`
-- [ ] T029 [US2] Make T022 and T023 pass for `/tapas/`
+- [x] T024 [US2] Create `src/businesses/tapas/business.json`: `slug: "tapas"`, `register: "daytime"`, `lang: "es"`, a `contact` block (`phone`, `address`, `website`) all `[PLACEHOLDER - replace]`, and the 8 entries in exact FR-018 order with ids `menu`, `reserve`, `takeaway`, `review`, `newsletter`, `instagram`, `wifi`, `vcard`
+- [x] T025 [P] [US2] Create `src/businesses/tapas/theme.css`: daytime / product register, clearly distinct from the copas identity (FR-015), meeting FR-023 contrast
+- [x] T026 [P] [US2] Create `src/_engine/vcard.js` per contracts/vcard.md: vCard 3.0, `VERSION:3.0`, UTF-8, CRLF line endings, RFC 2426 escaping of `,` `;` `\` in every value, Blob + `<a download="tapas.vcf">`, object URL revoked after use, no network request
+- [x] T027 [US2] Create `src/_includes/partials/entry-vcard.njk` enforcing the all-or-nothing precondition: generate only when `name`, `phone`, `address`, and `website` are all confirmed; otherwise render as pending (FR-020, FR-024) — never a partial card
+- [x] T028 [US2] Create `src/businesses/tapas/index.njk` binding this business to `layouts/hub.njk`
+- [x] T029 [US2] Make T022 and T023 pass for `/tapas/`
 
 **Checkpoint**: Both hubs work independently and are visibly distinct businesses (SC-005)
 

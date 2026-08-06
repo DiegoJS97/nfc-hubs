@@ -1,0 +1,44 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Edit(scripts/**)",
+      "Write(src/**)",
+      "Write(tests/**)",
+      "Write(scripts/**)",
+      "Bash(git status*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(npm install*)",
+      "Bash(npm run build*)",
+      "Bash(npm run test*)",
+      "Bash(npx playwright*)"
+    ],
+    "ask": [
+      "Edit(specs/**)",
+      "Write(specs/**)",
+      "Edit(.specify/memory/constitution.md)",
+      "Write(.specify/memory/constitution.md)",
+      "Edit(.claude/**)",
+      "Write(.claude/**)",
+      "Bash(git push*)",
+      "Bash(git reset*)",
+      "Bash(git clean*)",
+      "Bash(rm*)",
+      "Bash(rmdir*)",
+      "Bash(del*)",
+      "Bash(curl*)",
+      "Bash(wget*)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}
