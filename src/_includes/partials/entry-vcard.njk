@@ -1,0 +1,47 @@
+{#
+  The save-contact entry (FR-020, tapas only).
+
+  All-or-nothing: the confirmed branch is reached only when resolveEntry() has established
+  that business.name AND all three contact fields are real. A partially confirmed contact
+  produces NO vCard rather than an incomplete one - an address book entry is far harder for
+  a customer to undo than a failed tap.
+
+  The pending branch is deliberately the same markup shape as entry-pending.njk, so one
+  notice mechanism (and one pending.js listener) serves every pending entry on the page.
+#}
+{% if state == "confirmed" %}
+  <li class="entries__item">
+    {#
+      Values are written into data- attributes at build time, so vcard.js reads them from the
+      document and never has a destination or contact value compiled into it (T038).
+    #}
+    <button
+      class="entry entry--vcard"
+      type="button"
+      data-vcard
+      data-vcard-filename="{{ business.slug }}.vcf"
+      data-vcard-name="{{ business.name }}"
+      data-vcard-phone="{{ business.contact.phone }}"
+      data-vcard-address="{{ business.contact.address }}"
+      data-vcard-website="{{ business.contact.website }}"
+    >
+      <span class="entry__label">{{ entry.label }}</span>
+    </button>
+  </li>
+{% else %}
+  <li class="entries__item">
+    <button
+      class="entry entry--pending entry--vcard"
+      type="button"
+      data-pending
+      aria-describedby="pending-{{ entry.id }}"
+    >
+      <span class="entry__label">{{ entry.label }}</span>
+      <span class="entry__badge">{{ site.ui.pendingBadge }}</span>
+    </button>
+
+    <p class="entry__notice" id="pending-{{ entry.id }}" role="status" hidden>
+      {{ site.ui.pendingNotice }}
+    </p>
+  </li>
+{% endif %}

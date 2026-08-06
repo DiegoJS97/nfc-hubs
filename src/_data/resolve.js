@@ -109,4 +109,14 @@ export function resolveHref(entry, business) {
   }
 }
 
-export default { PLACEHOLDER, isPlaceholder, resolveEntry, resolveHref };
+/**
+ * Does this business have a save-contact entry?
+ *
+ * Lets a hub load vcard.js only when it actually needs it: the copas hub has no vCard
+ * (FR-017) and so ships none of that code, keeping its payload at the FR-022 minimum.
+ */
+export function hasVcard(business) {
+  return (business.entries ?? []).some((entry) => entry.type === "vcard");
+}
+
+export default { PLACEHOLDER, isPlaceholder, resolveEntry, resolveHref, hasVcard };

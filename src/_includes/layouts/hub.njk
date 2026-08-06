@@ -50,5 +50,10 @@
       its only job is showing the pending notice on tap (FR-024).
     #}
     <script src="/_engine/pending.js" defer></script>
+
+    {% if resolve.hasVcard(business) %}
+      {# Only the hub that actually has a save-contact entry pays for this (FR-017, FR-022). #}
+      <script src="/_engine/vcard.js" defer></script>
+    {% endif %}
   </body>
 </html>

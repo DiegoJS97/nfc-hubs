@@ -60,3 +60,39 @@ test.describe("table parameter - copas", () => {
     expect(stored.cookies).toBe("");
   });
 });
+
+test.describe("table parameter - tapas", () => {
+  test("SC-009: renders identically with, without, empty, and unknown ?m=", async ({ page }) => {
+    const renders: string[] = [];
+
+    for (const url of variantsFor("tapas")) {
+      await page.goto(url);
+      renders.push(await page.locator("main").innerHTML());
+    }
+
+    for (const render of renders) {
+      expect(render).toBe(renders[0]);
+    }
+  });
+
+  test("FR-021: the parameter value is never displayed", async ({ page }) => {
+    await page.goto(`/tapas/?m=${TOKEN}`);
+    await expectHubRendered(page);
+    expect(await page.locator("body").innerText()).not.toContain(TOKEN);
+  });
+
+  test("FR-012/FR-021: nothing is persisted client-side", async ({ page }) => {
+    await page.goto(`/tapas/?m=${TOKEN}`);
+    await expectHubRendered(page);
+
+    const stored = await page.evaluate(() => ({
+      local: window.localStorage.length,
+      session: window.sessionStorage.length,
+      cookies: document.cookie,
+    }));
+
+    expect(stored.local).toBe(0);
+    expect(stored.session).toBe(0);
+    expect(stored.cookies).toBe("");
+  });
+});
