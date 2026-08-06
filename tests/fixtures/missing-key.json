@@ -1,0 +1,16 @@
+{
+  "slug": "copas",
+  "name": "[PLACEHOLDER - replace]",
+  "register": "nocturnal",
+  "lang": "es",
+  "wifiSsid": "[PLACEHOLDER - replace]",
+  "entries": [
+    { "id": "menu", "label": "Carta de cócteles", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "reserve", "label": "Reservar mesa / zona VIP", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "playlist", "label": "Playlist / Spotify", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "events", "label": "Agenda de eventos / DJs", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "instagram", "label": "Instagram", "type": "link", "url": "[PLACEHOLDER - replace]" },
+    { "id": "review", "label": "Reseña Google", "type": "review" },
+    { "id": "wifi", "label": "WiFi", "type": "wifi" }
+  ]
+}

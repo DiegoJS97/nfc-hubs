@@ -123,13 +123,13 @@ Per plan.md: shared engine in `src/_includes/` and `src/_engine/`, business cont
 
 ### Tests for User Story 3
 
-- [ ] T030 [P] [US3] Write `tests/e2e/data-swap.spec.ts`: with a confirmed value substituted in a fixture, the entry navigates to the new destination and the corresponding pending notice disappears — proving the confirmed↔pending transition is data-driven (SC-004, FR-014)
+- [x] T030 [P] [US3] Write `tests/e2e/data-swap.spec.ts`: with a confirmed value substituted in a fixture, the entry navigates to the new destination and the corresponding pending notice disappears — proving the confirmed↔pending transition is data-driven (SC-004, FR-014)
 
 ### Implementation for User Story 3
 
-- [ ] T031 [P] [US3] Create `scripts/audit-placeholders.mjs` listing every remaining `[PLACEHOLDER - replace]` with its file and JSON path, wired to `npm run audit:placeholders` (Constitution VII)
-- [ ] T032 [US3] Confirm T008's validation rejects a malformed `business.json` (missing key, empty string, `null`) with a message naming the offending field, and add the failing fixtures under `tests/fixtures/`
-- [ ] T033 [US3] Write `README.md` documenting the data-replacement workflow: which file to edit per business, the sentinel convention, the audit command, and the warning that `Entry.id` values are Phase 2 route segments and must not be renamed casually
+- [x] T031 [P] [US3] Create `scripts/audit-placeholders.mjs` listing every remaining `[PLACEHOLDER - replace]` with its file and JSON path, wired to `npm run audit:placeholders` (Constitution VII)
+- [x] T032 [US3] Confirm T008's validation rejects a malformed `business.json` (missing key, empty string, `null`) with a message naming the offending field, and add the failing fixtures under `tests/fixtures/`
+- [x] T033 [US3] Write `README.md` documenting the data-replacement workflow: which file to edit per business, the sentinel convention, the audit command, and the warning that `Entry.id` values are Phase 2 route segments and must not be renamed casually
 
 **Checkpoint**: A non-developer can confirm real data without touching the engine
 

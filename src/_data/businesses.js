@@ -9,32 +9,24 @@
  * Discovery is a directory scan, not a list - adding a third business means adding a
  * folder (Constitution VI).
  */
-import { readdirSync, readFileSync, existsSync } from "node:fs";
+import { readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { validateBusiness } from "./validate.js";
+import { parseJsonFile } from "../../scripts/lib/read-json.mjs";
 
 const BUSINESSES_DIR = new URL("../businesses/", import.meta.url);
 
-/** UTF-8 byte order mark, written as an escape: a literal here would be invisible in review. */
-const BOM = /^\uFEFF/;
-
 /**
- * Strip a UTF-8 BOM before parsing.
+ * \u26A0 THIS MODULE MUST HAVE A DEFAULT EXPORT AND NOTHING ELSE.
  *
- * Windows editors add one readily, and JSON.parse rejects it with "Unexpected token" and
- * no indication of which file or why. Since the whole point of this data layer is that a
- * non-developer edits these files (US3), an invisible byte must not produce an inscrutable
- * build failure.
+ * Eleventy inspects a data file's module shape: with only a default export it calls that
+ * function and uses the result, but adding any named export makes it expose the module
+ * namespace instead. That turns the `businesses` global into `{ default: fn, ... }`, and
+ * every `businesses[slug]` lookup silently becomes undefined in every template.
+ *
+ * Shared helpers go in scripts/lib/, not here.
  */
-function parseJsonFile(path) {
-  const raw = readFileSync(path, "utf8").replace(BOM, "");
-  try {
-    return JSON.parse(raw);
-  } catch (error) {
-    throw new Error(`${path} is not valid JSON: ${error.message}`);
-  }
-}
 
 export default function () {
   const root = BUSINESSES_DIR.pathname.replace(/^\/([A-Za-z]:)/, "$1");
