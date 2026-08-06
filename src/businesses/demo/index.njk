@@ -1,0 +1,14 @@
+---
+layout: layouts/hub.njk
+slug: demo
+permalink: /demo/index.html
+---
+
+{#
+  Binding only. This file names which business to render and where the page lives; every
+  label, destination, and value comes from business.json via the data cascade.
+
+  The slug is deliberately generic. `validate.js` only enforces a mandated entry sequence for
+  slugs listed in its ENTRY_ORDER table, so an unlisted slug is free to choose its own entry
+  set - which is exactly what the generic archetype needs.
+#}

@@ -25,9 +25,17 @@
       </header>
 
       {#
-        Array order IS the customer-facing priority order (FR-016, FR-018, SC-001).
-        Nothing here sorts, filters, or reorders - validate.js already asserted the
-        sequence at build time, so what the data says is what the customer sees.
+        Array order IS the customer-facing priority order (SC-001). Nothing here sorts,
+        filters, or reorders - the order is chosen per business in business.json, and what
+        the data says is what the customer sees.
+
+        The dispatch is on entry.type alone, so the archetype supports a CATALOG of entry
+        types and each business instance picks the ones it wants. Adding a type is a new
+        partial plus a branch here plus a case in resolve.js - never a per-business change.
+
+        wifi and vcard come first because they render their own pending state internally:
+        wifi is inert text either way (FR-007), and the vCard's all-or-nothing rule makes its
+        pending branch a different button, not a different label.
       #}
       <ul class="entries" id="entries">
         {% for entry in business.entries %}
@@ -36,10 +44,14 @@
             {% include "partials/entry-wifi.njk" %}
           {% elif entry.type == "vcard" %}
             {% include "partials/entry-vcard.njk" %}
-          {% elif state == "confirmed" %}
-            {% include "partials/entry-link.njk" %}
-          {% else %}
+          {% elif state != "confirmed" %}
             {% include "partials/entry-pending.njk" %}
+          {% elif entry.type == "maps" %}
+            {% include "partials/entry-maps.njk" %}
+          {% elif entry.type == "tel" %}
+            {% include "partials/entry-tel.njk" %}
+          {% else %}
+            {% include "partials/entry-link.njk" %}
           {% endif %}
         {% endfor %}
       </ul>

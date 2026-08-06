@@ -1,0 +1,71 @@
+/*
+ * [ES] "Taberna Vela y Sal" - demonstration instance of the generic archetype.
+ *
+ * A fictional venue used to show a FINISHED hub to a prospect: every value in its
+ * business.json is real (invented, but real), so nothing on this page renders as pending.
+ *
+ * The register is nocturnal because that is the harder case to get right and therefore the
+ * more convincing thing to show: deep slate ground, one copper accent, generous corners.
+ * Colour and character live here; structure and the accessibility floor live in base.css and
+ * are not overridable from a theme.
+ *
+ * Every pair below clears the FR-023 floor of 4.5:1. D8 still applies: an automated contrast
+ * check evaluates DECLARED colours and cannot tell you whether this is readable on a real
+ * phone in a dark room. That check is manual (T039).
+ */
+
+:root {
+  --hub-bg: #0d1117;
+  --hub-fg: #f2f4f8; /* on --hub-bg: ~16.9:1 */
+  --hub-muted: #b9c2d0; /* on --entry-bg: ~9.3:1 */
+  --entry-bg: #161c25;
+  --entry-fg: #f2f4f8; /* on --entry-bg: ~15.1:1 */
+  --entry-border: #33415a;
+  --entry-radius: 16px;
+  --focus-ring: #ffb454; /* copper, ~9.9:1 on --hub-bg */
+}
+
+body {
+  /* Pure CSS, no image asset - a low horizon glow rather than an overhead spotlight. */
+  background-image: radial-gradient(140% 50% at 50% 100%, #17222f 0%, #0d1117 62%);
+  background-attachment: fixed;
+}
+
+.hub__name {
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.hub__header {
+  padding-bottom: 1rem;
+}
+
+/* A short copper rule under the venue name, not a full-width divider. */
+.hub__header::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 3px;
+  margin-top: 0.875rem;
+  border-radius: 2px;
+  background: var(--focus-ring);
+}
+
+.entry {
+  box-shadow: 0 1px 0 rgb(255 255 255 / 5%) inset;
+}
+
+/* maps and tel entries carry .entry--link as well, so one rule covers every navigation. */
+.entry--link:active {
+  background: #1d2531;
+}
+
+.entry__badge {
+  color: var(--focus-ring);
+}
+
+.entry__notice {
+  border-left-color: var(--focus-ring);
+  color: var(--hub-fg);
+}

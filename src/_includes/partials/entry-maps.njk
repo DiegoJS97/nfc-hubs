@@ -1,0 +1,16 @@
+{#
+  A confirmed `maps` entry: a plain link to the business's Google Maps place page.
+
+  Same shape and same accessibility guarantees as entry-link.njk - a real <a href>, one box,
+  the 44x44 CSS px floor from base.css (FR-023). It is a separate partial only because the
+  destination is derived from `placeId` rather than read from a `url` key.
+
+  It is a LINK and nothing more. No web API can add a place to a customer's Google saved
+  list, so the hub does not pretend to offer one; the customer saves it themselves from the
+  page this opens.
+#}
+<li class="entries__item">
+  <a class="entry entry--link entry--maps" href="{{ resolve.resolveHref(entry, business) }}" rel="noopener">
+    <span class="entry__label">{{ entry.label }}</span>
+  </a>
+</li>

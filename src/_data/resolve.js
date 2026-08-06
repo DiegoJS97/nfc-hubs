@@ -2,7 +2,7 @@
  * The placeholder sentinel and entry resolution (data-model.md, FR-024).
  *
  * This module is the single place that answers "is this entry confirmed or pending?".
- * Both hubs and every partial go through it, so the visible marker (Constitution VII)
+ * Every hub and every partial goes through it, so the visible marker (Constitution VII)
  * and the runtime behaviour (FR-024) cannot drift apart.
  */
 
@@ -29,8 +29,36 @@ export const PLACEHOLDER = "[PLACEHOLDER - replace]";
  */
 const REVIEW_URL_BASE = "https://search.google.com/local/writereview?placeid=";
 
-/** The four values the tapas vCard needs, all-or-nothing (FR-020, contracts/vcard.md). */
+/**
+ * The Google Maps "place" URL format, for the `maps` entry type.
+ *
+ * Same reasoning as REVIEW_URL_BASE and the same trade-off: the template is identical for
+ * every business, so it is engine code, while the only business-identifying part - `placeId`
+ * - stays in business.json. Pointing a hub at a different place is still a data edit.
+ *
+ * This is deliberately a plain link to the place page. There is no web API that adds a place
+ * to someone's Google saved list, so the hub must not pretend to; the customer saves it
+ * themselves from the page this opens.
+ *
+ * NOTE (Constitution VIII): like the writereview format, the exact URL shape is an assumption
+ * to verify against a real place ID before go-live.
+ */
+const MAPS_URL_BASE = "https://www.google.com/maps/place/?q=place_id:";
+
+/** The four values a vCard needs, all-or-nothing (FR-020, contracts/vcard.md). */
 const VCARD_REQUIRED = ["name", "phone", "address", "website"];
+
+/**
+ * Reduce a display phone number to the digits (and leading +) a `tel:` URI may contain.
+ *
+ * business.json holds the number as a human writes it ("+34 600 000 000"); RFC 3966 does not
+ * allow spaces in the URI. Formatting stays in the data and is what the customer reads on the
+ * label; only the href is normalised.
+ */
+function toTelUri(phone) {
+  const digits = String(phone).replace(/[^\d]/g, "");
+  return `tel:${String(phone).trimStart().startsWith("+") ? "+" : ""}${digits}`;
+}
 
 /**
  * True only for the exact sentinel.
@@ -57,6 +85,19 @@ export function resolveEntry(entry, business) {
 
     case "review":
       return isPlaceholder(business.placeId) ? "pending" : "confirmed";
+
+    // Both `review` and `maps` are parameterised by the same placeId, so they confirm
+    // together. There is no second field to keep in sync and nothing to get half-right.
+    case "maps":
+      return isPlaceholder(business.placeId) ? "pending" : "confirmed";
+
+    case "tel": {
+      // A missing `contact` block is a data error the schema should reject, but resolving it
+      // to "pending" rather than throwing means the worst case is an entry that shows the
+      // notice - never `tel:undefined` in a customer's dialler.
+      const phone = business.contact?.phone;
+      return phone !== undefined && !isPlaceholder(phone) ? "confirmed" : "pending";
+    }
 
     case "wifi":
       return isPlaceholder(business.wifiSsid) ? "pending" : "confirmed";
@@ -103,6 +144,10 @@ export function resolveHref(entry, business) {
       return entry.url;
     case "review":
       return REVIEW_URL_BASE + encodeURIComponent(business.placeId);
+    case "maps":
+      return MAPS_URL_BASE + encodeURIComponent(business.placeId);
+    case "tel":
+      return toTelUri(business.contact.phone);
     default:
       // wifi is inert text; vcard is a local browser action. Neither navigates.
       return null;
@@ -112,8 +157,10 @@ export function resolveHref(entry, business) {
 /**
  * Does this business have a save-contact entry?
  *
- * Lets a hub load vcard.js only when it actually needs it: the copas hub has no vCard
- * (FR-017) and so ships none of that code, keeping its payload at the FR-022 minimum.
+ * The save-contact feature is an OPTIONAL module of the archetype, not a property of a
+ * business category: a hub gets it by declaring a `vcard` entry and by nothing else. This
+ * predicate is what lets a hub without one ship none of that code, keeping its payload at
+ * the FR-022 minimum.
  */
 export function hasVcard(business) {
   return (business.entries ?? []).some((entry) => entry.type === "vcard");

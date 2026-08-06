@@ -1,0 +1,18 @@
+{#
+  A confirmed `tel` entry: a real <a href="tel:..."> that hands the number to the phone's
+  dialler (FR-008 - a browser-native scheme, not a native-app deep link).
+
+  The href is normalised by resolve.js because RFC 3966 forbids spaces in the URI; the LABEL
+  still comes from business.json, so what the customer reads is whatever the owner wrote.
+
+  No `rel="noopener"` here: that attribute is about the window opener relationship of a
+  navigation, and a tel: activation never opens a browsing context.
+
+  Structurally identical to entry-link.njk, so it inherits the 44x44 CSS px target floor and
+  the focus treatment from base.css (FR-023).
+#}
+<li class="entries__item">
+  <a class="entry entry--link entry--tel" href="{{ resolve.resolveHref(entry, business) }}">
+    <span class="entry__label">{{ entry.label }}</span>
+  </a>
+</li>
