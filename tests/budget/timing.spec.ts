@@ -1,18 +1,21 @@
 import { test, expect } from "@playwright/test";
 
+import { hubs } from "../lib/hubs";
+
 /**
  * SC-008 - essential content visible within budget on a throttled connection.
  *
  * "Essential content" is read literally from the spec: the business identity and the FULL
  * list of entries. The measurement therefore waits for the LAST entry, not for first paint -
  * a hub whose header renders instantly but whose list arrives late has not met the criterion.
+ * The entry count comes from each business's own data, so a hub with a longer list is still
+ * measured to its own last entry.
  *
  * ⚠ Chromium only. Network and CPU throttling go through CDP, which WebKit does not expose,
  * so this cannot be measured on the emulated iPhone. That is a real coverage gap: iOS Safari
  * timing on a degraded venue connection is unverified here and belongs with the T039 device
  * checks.
  */
-const ENTRY_COUNTS: Record<string, number> = { copas: 7, tapas: 8 };
 
 /** Chrome DevTools "Fast 4G": 4 Mbit/s down, 3 Mbit/s up, 20 ms RTT. */
 const TYPICAL_4G = {
@@ -33,7 +36,12 @@ const DEGRADED = {
 /** Mid-range phone rather than a development machine. */
 const CPU_SLOWDOWN = 4;
 
-async function measure(page: import("@playwright/test").Page, slug: string, conditions: object) {
+async function measure(
+  page: import("@playwright/test").Page,
+  slug: string,
+  entryCount: number,
+  conditions: object,
+) {
   const client = await page.context().newCDPSession(page);
   await client.send("Network.enable");
   await client.send("Network.emulateNetworkConditions", conditions);
@@ -43,7 +51,7 @@ async function measure(page: import("@playwright/test").Page, slug: string, cond
   await page.goto(`/${slug}/`, { waitUntil: "commit" });
   await page
     .locator(".entries__item")
-    .nth(ENTRY_COUNTS[slug] - 1)
+    .nth(entryCount - 1)
     .waitFor({ state: "visible" });
 
   return Date.now() - started;
@@ -55,20 +63,22 @@ test.describe("load timing", () => {
     "network throttling requires CDP, which WebKit does not expose",
   );
 
-  for (const slug of Object.keys(ENTRY_COUNTS)) {
-    test(`SC-008: ${slug} essential content visible within 1.5s on typical 4G`, async ({
+  for (const hub of hubs()) {
+    const entryCount = hub.data.entries.length;
+
+    test(`SC-008: ${hub.slug} essential content visible within 1.5s on typical 4G`, async ({
       page,
     }) => {
-      const elapsed = await measure(page, slug, TYPICAL_4G);
-      console.log(`${slug} @ typical 4G: ${elapsed} ms`);
+      const elapsed = await measure(page, hub.slug, entryCount, TYPICAL_4G);
+      console.log(`${hub.slug} @ typical 4G: ${elapsed} ms`);
       expect(elapsed).toBeLessThanOrEqual(1500);
     });
 
-    test(`SC-008: ${slug} essential content visible within 3s on a degraded connection`, async ({
+    test(`SC-008: ${hub.slug} essential content visible within 3s on a degraded connection`, async ({
       page,
     }) => {
-      const elapsed = await measure(page, slug, DEGRADED);
-      console.log(`${slug} @ degraded: ${elapsed} ms`);
+      const elapsed = await measure(page, hub.slug, entryCount, DEGRADED);
+      console.log(`${hub.slug} @ degraded: ${elapsed} ms`);
       expect(elapsed).toBeLessThanOrEqual(3000);
     });
   }

@@ -4,6 +4,7 @@ import { test, expect } from "@playwright/test";
 
 import { validateBusiness } from "../../src/_data/validate.js";
 import { parseJsonFile } from "../../scripts/lib/read-json.mjs";
+import { hubs } from "../lib/hubs";
 
 /**
  * T032 - confirm the build actually refuses malformed business data, and says which field.
@@ -38,13 +39,17 @@ test.describe("business.json validation", () => {
   /**
    * Positive control. Without this, every assertion below would still pass if
    * validateBusiness simply threw on everything.
+   *
+   * Enumerated rather than naming one business: this is also the check that a newly added
+   * business instance is well-formed, which matters more now that the archetype is generic
+   * and a new hub is just a new folder.
    */
-  test("accepts the real copas data", () => {
-    const real = parseJsonFile(
-      fileURLToPath(new URL("../../src/businesses/copas/business.json", import.meta.url)),
-    );
-    expect(() => validateBusiness(real, "src/businesses/copas/business.json", "copas")).not.toThrow();
-  });
+  for (const hub of hubs()) {
+    test(`accepts the real ${hub.slug} data`, () => {
+      const real = parseJsonFile(fileURLToPath(new URL(`../../${hub.dataPath}`, import.meta.url)));
+      expect(() => validateBusiness(real, hub.dataPath, hub.slug)).not.toThrow();
+    });
+  }
 
   test("rejects a missing required key, naming it", () => {
     expectRejection("missing-key.json", "placeId");
