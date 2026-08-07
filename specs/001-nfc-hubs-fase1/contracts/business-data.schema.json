@@ -50,7 +50,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["phone", "address", "website"],
-      "description": "Present for tapas only. Source of the vCard (FR-020). Absent for the cocktail bar (FR-017).",
+      "description": "Source of the entry types that derive from contact values: the vCard (FR-020) and the tel: link. A business declares it only if it uses one of those types.",
       "properties": {
         "phone": {
           "anyOf": [{ "$ref": "#/$defs/nonEmpty" }, { "$ref": "#/$defs/placeholder" }]
@@ -66,7 +66,7 @@
     "entries": {
       "type": "array",
       "minItems": 1,
-      "description": "Array order IS the customer-facing priority order (FR-016, FR-018).",
+      "description": "Array order IS the customer-facing priority order. Which types a business uses, and in what order, is chosen per instance and is not fixed by the spec (FR-016, FR-018).",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -82,11 +82,11 @@
             "description": "[ES] customer-facing label. Never translated."
           },
           "type": {
-            "enum": ["link", "review", "wifi", "vcard"]
+            "enum": ["link", "review", "wifi", "vcard", "maps", "tel"]
           },
           "url": {
             "oneOf": [{ "$ref": "#/$defs/httpsUrl" }, { "$ref": "#/$defs/placeholder" }],
-            "description": "Required when type=link; forbidden otherwise."
+            "description": "Required when type=link; forbidden otherwise. review and maps derive their destination from placeId, tel from contact.phone - so there is one place to change each format."
           }
         },
         "allOf": [
@@ -101,18 +101,19 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "slug": { "const": "copas" } }, "required": ["slug"] },
-      "then": {
-        "not": { "required": ["contact"] },
-        "properties": { "register": { "const": "nocturnal" } }
-      }
-    },
-    {
-      "if": { "properties": { "slug": { "const": "tapas" } }, "required": ["slug"] },
-      "then": {
-        "required": ["contact"],
-        "properties": { "register": { "const": "daytime" } }
-      }
+      "$comment": "An entry that derives its destination from contact values cannot resolve without them. Catching it here fails the BUILD; resolve.js would otherwise degrade it to a pending entry, which hides a data error behind a legitimate-looking state.",
+      "if": {
+        "required": ["entries"],
+        "properties": {
+          "entries": {
+            "contains": {
+              "required": ["type"],
+              "properties": { "type": { "enum": ["tel", "vcard"] } }
+            }
+          }
+        }
+      },
+      "then": { "required": ["contact"] }
     }
   ]
 }
