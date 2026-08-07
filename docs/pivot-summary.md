@@ -4,10 +4,12 @@
 **Branch**: `master`
 **Commits**: `c59e192`, `bd4aeae`, `a5e5a14`, `573b408`, `d567b22`, `7f1a42f`, `02527a6`, `aba4b2c`,
 `5f7ccf6`, `4cd2737`, `14d6157`, `372b09c` — twelve, oldest first
-**State**: working tree clean, `npm run build && npm run test` green (75 passed, 5 skipped), nothing pushed
+**State**: working tree clean, `npm run build && npm run test` green (75 passed, 5 skipped), pushed
+**Live**: <https://diegojs97.github.io/nfc-hubs/demo/> — deployed by Actions from `1991c39`
 
-**All four originally-blocked items are now approved and committed.** The only things left are a
-manual change in the GitHub UI and the push itself — see "What remains" at the end.
+**All four originally-blocked items are approved, committed, and deployed.** Nothing is blocking.
+See "Deployment" and "What remains" at the end for the two repo settings that had to change and
+what is still worth doing.
 
 ---
 
@@ -285,38 +287,72 @@ The built demo hub is `_site/demo/index.html`; every first-party reference in it
 
 ---
 
+## Deployment — done, and how it was actually enabled
+
+**Live at <https://diegojs97.github.io/nfc-hubs/demo/>.** Pushed, built by Actions, and deployed
+from commit `1991c39`; HTTPS enforced.
+
+Two settings had to change before a deploy could succeed, and **neither is discoverable from a
+failing build log alone**. Both were done through `gh`, not the web UI:
+
+```bash
+# 1. Enable Pages with Actions as the build source.
+#    Without this, actions/configure-pages fails with a bare "Get Pages site failed ... Not Found",
+#    which reads like a permissions problem and is not one.
+gh api -X POST repos/DiegoJS97/nfc-hubs/pages -f build_type=workflow
+
+# 2. Allow master to deploy to the github-pages environment.
+#    Enabling Pages CREATES that environment with a custom deployment branch policy containing
+#    only the repo's DEFAULT branch. This repo's default is `main`, so the policy permitted `main`
+#    and nothing else - and every deploy from `master` would have been rejected after a fully
+#    successful build.
+gh api -X POST repos/DiegoJS97/nfc-hubs/environments/github-pages/deployment-branch-policies \
+  -f name=master -f type=branch
+```
+
+The first deploy attempt failed at `configure-pages` because step 1 had not been done yet.
+Everything upstream of it passed on that same run — `npm ci`, the base-path guard, the full suite,
+and the build — so the workflow itself was validated before Pages even existed.
+
+The run after both settings landed went green end to end: `build` 2m3s, `deploy` 1m8s. The suite
+therefore passes on a clean Ubuntu checkout, not only on a Windows dev box, and the base-path guard
+confirmed `PATH_PREFIX` against the real repository name — the one check that only CI can make.
+
+Note for anyone reading the Pages API later: `status: null` on the site object and a **404** from
+`pages/builds/latest` are expected under `build_type: workflow`. Those fields describe the legacy
+Jekyll pipeline, which is not running. The `deployments` entry is the authoritative signal.
+
+---
+
 ## What remains
 
-Nothing in the repository. Two things outside it, then the ordinary follow-up work.
+Nothing blocking. Nothing in the repository.
 
-### 1. Switch the Pages source — manual, and only you can do it
+### The `main` stub — worth fixing deliberately
 
-On **github.com/DiegoJS97/nfc-hubs**:
+| | |
+|---|---|
+| Default branch | `main` |
+| Tip of `main` | `"Initial commit"` |
+| Tip of `master` | all of this work, plus the project's prior history |
 
-1. **Settings** → **Pages** (sidebar, under "Code and automation").
-2. **Build and deployment** → **Source**: change **Deploy from a branch** to **GitHub Actions**.
-   Applies immediately; there is no save button. This is not optional — `_site/` is gitignored, so
-   a branch-based source would publish `package.json` and `src/` and no built hubs at all.
-3. **Settings** → **Actions** → **General** → **Workflow permissions**: confirm Actions is enabled.
-   The workflow declares its own `permissions:` block, which suffices on a default-configured repo,
-   but a repo hardened to read-only will fail the deploy step.
-4. After the first successful run, **Settings** → **Pages** shows the live URL and an
-   **Environment: github-pages** entry.
+The real trunk is `master`, but GitHub's default is `main`, so clones, new PRs, and the Pages
+branch policy all point at an empty branch. That is what made the branch-policy problem above
+happen in the first place. Making `master` the default and deleting `main` would remove a trap
+rather than tidy one.
 
-Until step 2 is done, a push runs the workflow, the `build` job passes, and the `deploy` job fails.
+### Action pins
 
-### 2. Push
+`actions/checkout@v4`, `actions/setup-node@v4`, `actions/configure-pages@v5`, and
+`actions/upload-artifact@v4` all emit Node 20 deprecation warnings and are being forced onto Node
+24. Warnings only today; the pins want bumping.
 
-Twelve commits sit unpushed on `master`. Nothing in this session pushed anything.
-
-On the first deployed run, check the page loads **styled**. Unstyled means `PATH_PREFIX` does not
-match the repository name — though `372b09c`'s guard should have failed the build before it got
-that far.
-
-### 3. Follow-up work, none of it blocking
+### Ordinary follow-up
 
 - The five stale docs above.
 - Verify "Taberna Vela y Sal" is not a real venue.
 - T039 device checks on real hardware.
 - Decide whether to populate `placeId`, `contact.phone`, and the `maps`/`tel` entries — a data
   edit, already proven to work.
+- Confirm by eye that the live hub renders **styled**. Unstyled would mean `PATH_PREFIX` does not
+  match the deployed base path, though `372b09c`'s guard should fail the build before that ships.
