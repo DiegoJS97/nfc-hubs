@@ -18,8 +18,10 @@ import { hubs, pendingCount } from "../lib/hubs";
  * this is now the only place the pending path is exercised end to end, including the
  * requirement that the state be perceivable without colour (FR-023).
  *
- * The test mutates a tracked file and rebuilds, so it restores in a finally block, and runs
- * on a single project - two projects in parallel would race on the same file.
+ * The test mutates a tracked file and rebuilds, so it restores in a finally block. It lives in
+ * tests/rebuild/, which npm run test invokes last and with --workers=1: mutating business.json
+ * and _site/ while any page-reading spec is running is a race, and it has already produced one
+ * failure whose EXPECTED value was the sentinel.
  */
 const demo = hubs().find((hub) => hub.slug === "demo")!;
 
@@ -39,7 +41,8 @@ const BASELINE_LINKS = demo.data.entries.filter(
 test.describe("data swap", () => {
   test.skip(
     ({ browserName }) => browserName !== "chromium",
-    "build-level behaviour; running both projects would race on business.json",
+    "build-level behaviour: what a rebuild produces is browser-independent, so a second " +
+      "project would double the build time and prove nothing new",
   );
 
   test("SC-004/FR-014/FR-024: one value moves an entry between linked and pending", async ({

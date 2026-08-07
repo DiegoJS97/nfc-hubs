@@ -21,8 +21,10 @@ import { hubs } from "../lib/hubs";
  *
  * Method 2 matters because grep cannot see a destination assembled at runtime from fragments.
  *
- * Mutates the data files and rebuilds, so it restores in a finally block and runs on a single
- * project - two would race on the same files.
+ * Mutates the data files and rebuilds, so it restores in a finally block. It lives in
+ * tests/rebuild/, which npm run test invokes last and with --workers=1: rewriting every
+ * business.json and rebuilding _site/ while any page-reading spec is running is a race, and
+ * this file and data-swap.spec.ts would otherwise also race against each other.
  */
 
 /**
@@ -73,7 +75,8 @@ function traceify(raw: string, slug: string) {
 test.describe("Phase 2 seam", () => {
   test.skip(
     ({ browserName }) => browserName !== "chromium",
-    "rebuilds the site; running both projects would race on the data files",
+    "build-level behaviour: the built output and the src/ scan are browser-independent, so a " +
+      "second project would double the build time and prove nothing new",
   );
 
   test("T038: no external URL literal in src/ except the documented templates", () => {
