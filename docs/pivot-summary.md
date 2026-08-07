@@ -2,8 +2,12 @@
 
 **Date**: 2026-08-07
 **Branch**: `master`
-**Commits**: `c59e192`, `bd4aeae`, `a5e5a14`, `573b408`, `d567b22`, `7f1a42f`
+**Commits**: `c59e192`, `bd4aeae`, `a5e5a14`, `573b408`, `d567b22`, `7f1a42f`, `02527a6`, `aba4b2c`,
+`5f7ccf6`, `4cd2737`, `14d6157`, `372b09c` — twelve, oldest first
 **State**: working tree clean, `npm run build && npm run test` green (75 passed, 5 skipped), nothing pushed
+
+**All four originally-blocked items are now approved and committed.** The only things left are a
+manual change in the GitHub UI and the push itself — see "What remains" at the end.
 
 ---
 
@@ -13,9 +17,10 @@
 name in `spec.md` is what made adding a business a *spec* change rather than a folder. They are
 gone. In their place is one generic archetype: the engine supports a catalog of entry types, and
 a business instance chooses which of them it uses and in what order. `demo` is the first instance
-of it — a fictional venue, fully populated, meant to be shown to a prospect. The vCard is no
-longer a property of a business category; it is an optional module a hub opts into by declaring a
-`vcard` entry.
+of it — a fictional venue meant to be shown to a prospect. The vCard is no longer a property of a
+business category; it is an optional module a hub opts into by declaring a `vcard` entry. The
+schema, the spec and the constitution have all been amended to match, so the repo and its
+governing documents now agree.
 
 ---
 
@@ -103,6 +108,84 @@ Both rebuild specs justified their chromium-only guard as avoiding a race betwee
 projects. `--workers=1` made that untrue. The skips remain correct for the stronger reason: a
 rebuild's output and a scan of `src/` are browser-independent.
 
+### `02527a6` — this document
+
+Written when items 1–4 below were still blocked. Superseded by `372b09c` and the three governance
+commits; revised in place afterwards rather than left describing a state that no longer exists.
+
+### `aba4b2c` — the demo's phone is the sentinel too
+
+Same reasoning as `placeId`. Spain reserves no fictional number range, so a plausible `+34` number
+may belong to a real person, and once the `tel` type ships the failure mode is a customer dialling
+a stranger from a demo page. `+34 600 000 000` looked obviously fake to a reader and like a phone
+number to a dialler.
+
+### `5f7ccf6` — schema: entry type enum opened
+
+`entries[].type` gained `maps` and `tel`, which unblocked types that had been code-complete since
+`c59e192`. The two slug-keyed `allOf` blocks were deleted — they forced `register` per business
+name and made `contact` mandatory for one slug and forbidden for another.
+
+They were replaced by a constraint about *data* rather than about names: if any entry derives its
+destination from contact values (`tel`, `vcard`), then `contact` is required. `resolve.js`
+deliberately degrades a missing contact to a pending entry so the worst runtime case is a notice
+rather than `tel:undefined` — but pending is a legitimate state, so without this rule a typo'd
+contact block would look like an ordinary unconfirmed value forever.
+
+### `4cd2737` — spec: entry catalog replaces the two fixed sequences
+
+FR-016 now defines the catalog of entry types and how each behaves; FR-018 says a business
+instance selects from it in its own data, and that the selection is not spec-locked. FR-017 is
+reframed from "the cocktail bar must not include save contact" to the rule the engine already
+implemented. FR-019 generalises from the tapas newsletter to any entry that would otherwise need
+a proprietary form. FR-015, FR-023, SC-001, SC-006, SC-010 and the key entities lost their "both
+hubs" framing.
+
+Two things recorded rather than smoothed over:
+
+- **SC-005 genuinely weakens.** It asked a user to compare two hubs and see distinct venues; with
+  one instance there is nothing to compare. It keeps its testable half — a hub must not look
+  default-generated — and states explicitly that the rest is untestable until a second instance
+  exists.
+- **The 2026-07-21 clarification about the tapas vCard is left as written**, with a note that its
+  answer now applies to any hub declaring the entry. Clarification sessions are a dated record of
+  what was asked and answered; rewriting one to match a later decision destroys the reason to keep
+  them.
+
+A new 2026-08-07 clarification session records the pivot itself.
+
+### `14d6157` — constitution 1.0.1 → 1.1.0
+
+Principle III now states what future-phase measurement may and may not be: anonymous, aggregate,
+single-site audience measurement, no client-side identifiers, no cross-site tracking, consistent
+with the AEPD's audience-measurement cookie exemption; never personal data, never sharing or
+combining one client's data with another's. Scope & Exclusions gained the matching permanent entry,
+because the exclusion must survive independently of the phase that motivated it. The opening
+description was generalised in the same pass, so the constitution stops contradicting the spec it
+governs.
+
+MINOR per the document's own versioning policy. The Principle III amendment was reviewed manually
+before merging, per the governance requirement; formal OpenSpec pipeline adoption remains pending
+the first real-client contextualization.
+
+### `372b09c` — GitHub Pages deploy workflow
+
+Builds with Eleventy, runs the suite as the release gate, uploads `_site/` via
+`actions/upload-pages-artifact`, deploys with `actions/deploy-pages`.
+
+Its one non-obvious step is a guard for a failure the local suite structurally cannot catch:
+locally `PATH_PREFIX` is true by definition, because the builder and the test server read the same
+constant. Only CI knows the repository's real name. The step compares the two and fails loudly, so
+renaming the repo cannot silently ship an unstyled site.
+
+`configure-pages` is used deliberately **without** `static_site_generator: eleventy` — that option
+injects its own prefix via `ELEVENTY_PATH_PREFIX` and would compete with `eleventy.config.js`.
+
+Verified before committing: the file parses (`js-yaml`, already present as a transitive
+dependency), and the embedded `node -e` script was extracted *from the parsed YAML* and executed —
+passing for the real repo name, failing usefully for a wrong one, failing for a reformatted
+declaration. Parsing alone would not have shown that the block scalar preserved the shell quoting.
+
 ---
 
 ## Test topology after the pivot
@@ -120,66 +203,35 @@ running.
 
 ---
 
-## Blocked pending your approval — in order
+## The four gated items — all approved and committed
 
-Each of these is a permission prompt. Nothing here was forced through.
+Each of these required a permission prompt. None was forced through; each was proposed as a diff,
+reviewed, and then applied.
 
-### 1. `.github/workflows/deploy.yml` — **new file, rejected once**
+| # | Item | Commit | State |
+|---|---|---|---|
+| 1 | `.github/workflows/deploy.yml` | `372b09c` | Committed. Rejected on first proposal, re-proposed once `PATH_PREFIX` existed |
+| 2 | `contracts/business-data.schema.json` | `5f7ccf6` | Committed. `maps` and `tel` are now bindable from data |
+| 3 | `specs/001-nfc-hubs-fase1/spec.md` | `4cd2737` | Committed. Repo and spec agree again |
+| 4 | `.specify/memory/constitution.md` | `14d6157` | Committed at version 1.1.0 |
 
-Builds with Eleventy and publishes `_site/` via `actions/deploy-pages`. Needs re-attempting.
-Two things must be true for a deploy to work at all:
+**The repo no longer contradicts its own spec.** FR-016 and FR-018 described two hubs that had
+been deleted in `a5e5a14`; that gap closed with `4cd2737`.
 
-- **`_site/` is gitignored**, so a branch-based Pages source would serve the raw repo —
-  `package.json` and all. The Pages source must be set to **GitHub Actions** in repo settings.
-  That is a change in the GitHub UI, not in this repo, and nobody but you can make it.
-- `wrangler.toml` was left untouched, as instructed. Cloudflare Pages remains the candidate for
-  the phase that needs a server-side `/r/<entry-id>` redirector, which GitHub Pages cannot run.
+**`maps` and `tel` are reachable from data, but the demo has not been repopulated.** That is a
+deliberate data decision, not an oversight: `placeId`, `contact.phone`, and the maps entry's
+interim `url` are all still the sentinel, for the reasons in "Honest limits" below. Binding them is
+a pure data edit, verified end to end against a temporary build:
 
-### 2. `specs/001-nfc-hubs-fase1/contracts/business-data.schema.json` — **governance-gated**
+```
+<a class="entry entry--link entry--maps" href="https://www.google.com/maps/place/?q=place_id:…"
+<a class="entry entry--link entry--tel"  href="tel:+34600000000"
+```
 
-Until this lands, `maps` and `tel` are code-complete but **unreachable from data**. The demo binds
-"Cómo llegar" as an ordinary `link` entry, and has no phone entry at all.
-
-Proposed changes:
-
-- `entries[].type` enum: `["link", "review", "wifi", "vcard"]` → add `"maps"`, `"tel"`.
-- Delete the two root-level `allOf` blocks that special-case slug `copas` (forbid `contact`, force
-  `register: nocturnal`) and slug `tapas` (require `contact`, force `register: daytime`). Those
-  encode the two-archetype model this pivot removes.
-- Reword `contact`'s description — it is no longer "present for tapas only".
-- Consider adding: if `entries` contains an item with `type: "tel"` or `type: "vcard"`, then
-  require `contact`. That is expressible with `contains` + `if/then` in 2020-12 and would catch
-  at build time what `resolve.js` currently degrades to a pending entry.
-- **Keep** the placeholder/sentinel mechanism intact. It stays valuable for onboarding real
-  clients later, even though the demo instance uses it for only one field.
-
-Once approved, both entries become one-line data edits, and the entry **ids** are already correct
-— so the Phase 2 `/r/<entry-id>` route segments are preserved.
-
-### 3. `specs/001-nfc-hubs-fase1/spec.md` — **governance-gated**
-
-The repo currently **contradicts its own spec**: FR-016 and FR-018 mandate two hubs that no longer
-exist. This is the pivot working as intended, but it should not outlive review.
-
-- **FR-016 / FR-018** → replace the two business-specific fixed sequences with one generic
-  entry-catalog requirement: the archetype supports a defined set of entry types; a business
-  instance selects which ones it uses and in what order, and that selection is not spec-locked.
-- **FR-017** ("the cocktail bar must not include save contact") → reframe as: the vCard is an
-  optional entry type, neither required nor excluded for any business category.
-- Knock-on edits: User Stories 1 and 2 are written around the two named venues; SC-001 and SC-005
-  reference "both hubs" and their contrasting registers.
-
-### 4. `.specify/memory/constitution.md` — **governance-gated**
-
-The "no tracking, ever" framing overstates Phase 1's actual direction. Proposed replacement
-wording, per your draft:
-
-> Phase 1 collects nothing. Future phases may add anonymous, aggregate, single-site audience
-> measurement with no client-side identifiers or cross-site tracking, consistent with the AEPD's
-> audience-measurement cookie exemption — never personal data, never cross-client sharing.
-
-This is an amendment to Principle III's scope, so per the constitution's own governance section it
-needs a version bump (MINOR — material expansion of existing guidance) and a last-amended date.
+That confirmed four things: the schema accepts both types; `maps` derives from `placeId` with no
+`url` key, so it cannot drift from the review entry; `tel` strips the spaces RFC 3966 forbids while
+the label keeps the owner's formatting; and both inherit `entry--link`, so they get the 44×44 px
+target floor without a new CSS rule. The temporary data was reverted and never committed.
 
 ---
 
@@ -216,7 +268,7 @@ Not touched in this session. All of them describe the two-archetype world.
 | `README.md` | Describes the project as two hospitality venues |
 | `CLAUDE.md` | "Business archetypes" section mandates the two entry sets; Commands cites `tests/e2e/tapas.spec.ts`; unaware of `tests/rebuild/`, `test:rebuild`, `pathPrefix`, and the `maps`/`tel` types; still says `scripts/audit-placeholders.mjs` does not exist, which it does |
 | `docs/overview.md` | Two-business architecture |
-| `docs/validation-report.md` | Phase 1 validation against FR-016/FR-018 |
+| `docs/validation-report.md` | Validates Phase 1 against the OLD FR-016/FR-018, which `4cd2737` replaced — it now reports against requirements that no longer say what it claims |
 | `docs/t039-device-checks.md` | Device procedure written around the tapas vCard |
 
 ---
@@ -230,3 +282,41 @@ npm run audit:placeholders       # 3 remaining: placeId, contact.phone, the maps
 
 The built demo hub is `_site/demo/index.html`; every first-party reference in it begins with
 `/nfc-hubs/`.
+
+---
+
+## What remains
+
+Nothing in the repository. Two things outside it, then the ordinary follow-up work.
+
+### 1. Switch the Pages source — manual, and only you can do it
+
+On **github.com/DiegoJS97/nfc-hubs**:
+
+1. **Settings** → **Pages** (sidebar, under "Code and automation").
+2. **Build and deployment** → **Source**: change **Deploy from a branch** to **GitHub Actions**.
+   Applies immediately; there is no save button. This is not optional — `_site/` is gitignored, so
+   a branch-based source would publish `package.json` and `src/` and no built hubs at all.
+3. **Settings** → **Actions** → **General** → **Workflow permissions**: confirm Actions is enabled.
+   The workflow declares its own `permissions:` block, which suffices on a default-configured repo,
+   but a repo hardened to read-only will fail the deploy step.
+4. After the first successful run, **Settings** → **Pages** shows the live URL and an
+   **Environment: github-pages** entry.
+
+Until step 2 is done, a push runs the workflow, the `build` job passes, and the `deploy` job fails.
+
+### 2. Push
+
+Twelve commits sit unpushed on `master`. Nothing in this session pushed anything.
+
+On the first deployed run, check the page loads **styled**. Unstyled means `PATH_PREFIX` does not
+match the repository name — though `372b09c`'s guard should have failed the build before it got
+that far.
+
+### 3. Follow-up work, none of it blocking
+
+- The five stale docs above.
+- Verify "Taberna Vela y Sal" is not a real venue.
+- T039 device checks on real hardware.
+- Decide whether to populate `placeId`, `contact.phone`, and the `maps`/`tel` entries — a data
+  edit, already proven to work.
