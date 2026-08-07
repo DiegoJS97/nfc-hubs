@@ -1,9 +1,14 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.0 → 1.0.1
-Change type: PATCH (non-semantic: full ES→EN translation; principles, phases, scope, and
-             governance are substantively unchanged)
+Version change: 1.0.1 → 1.1.0
+Change type: MINOR (material expansion of Principle III: what future-phase measurement may and
+             may not do, plus a matching permanent exclusion in Scope & Exclusions. No principle
+             is removed or redefined. The opening description is also generalized: the project is
+             one shared archetype configured per business, not two named venues.)
+
+Previous change (1.0.0 → 1.0.1): PATCH (non-semantic: full ES→EN translation; principles, phases,
+             scope, and governance substantively unchanged)
 
 Language policy: This document is technical/structural content and is written entirely in English.
              There are no customer-facing strings in the constitution, so no Spanish is retained here.
@@ -40,9 +45,10 @@ Follow-up TODOs: none. All dates known; no deferred placeholders.
 
 NFC-activated "hub" pages for hospitality businesses. Every table in a business has a physical NFC
 tag that, when the phone is brought close, opens a hub page — not the menu directly — with several
-useful entries depending on the type of business. Two distinct businesses are developed (a cocktail
-bar and gourmet tapas) on top of a shared engine. These principles are NON-NEGOTIABLE and supersede
-any later design or implementation decision.
+useful entries depending on the venue. Businesses are developed as configured instances of one
+shared archetype: the engine supports a catalog of entry types, and each business selects which of
+them it uses. These principles are NON-NEGOTIABLE and supersede any later design or implementation
+decision.
 
 ## Core Principles
 
@@ -78,6 +84,13 @@ The product evolves in strict phases, and no phase may introduce contradictions 
 
 In PHASE 1 it is PROHIBITED to rely on the chip's "NFC Counter" or on `localStorage`/`sessionStorage`
 to count visits.
+
+**What measurement may become.** Phase 1 collects nothing. Future phases MAY add anonymous,
+aggregate, single-site audience measurement — which tables and entries are tapped, and when — with
+no client-side identifiers and no cross-site tracking, consistent with the AEPD's
+audience-measurement cookie exemption. It MUST NEVER collect personal data, and MUST NEVER share or
+combine one client's data with another's. A measurement design that cannot meet those limits is out
+of scope rather than a trade-off to negotiate.
 
 **Rationale**: separating an initial static deployment from server-side analytics avoids coupling
 the hub to infrastructure that does not yet exist, and centralizing destinations keeps the door open
@@ -138,6 +151,9 @@ The following areas are OUT OF SCOPE for the project in ALL phases:
   software in this repo.
 - **Managing the menu content itself**: it lives on the business's external website (see Principle V).
 - **A proprietary reservation system**: link to whatever each business already uses; do not build one.
+- **Personal data, cross-device identifiers, and cross-client data sharing**: excluded in ALL phases,
+  including any future analytics work. This is the boundary the measurement paragraph in Principle
+  III is drawn against.
 
 Any proposal falling into these areas MUST be rejected or redirected to the corresponding external
 system.
@@ -160,4 +176,4 @@ amended.
   (`/speckit.tasks`) MUST be verified against these principles via the "Constitution Check" gate. Any
   deviation MUST be explicitly justified or corrected before proceeding.
 
-**Version**: 1.0.1 | **Ratified**: 2026-07-20 | **Last Amended**: 2026-07-20
+**Version**: 1.1.0 | **Ratified**: 2026-07-20 | **Last Amended**: 2026-08-07
