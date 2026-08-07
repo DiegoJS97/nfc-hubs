@@ -13,6 +13,8 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { extname, join, resolve, sep } from "node:path";
 
+import { PATH_PREFIX } from "./lib/path-prefix.mjs";
+
 /**
  * fileURLToPath, not URL.pathname: on Windows the latter yields "/C:/path/with/slashes"
  * while path.join produces "C:\path\with\backslashes". Comparing those two forms is how the
@@ -38,7 +40,22 @@ const server = createServer(async (req, res) => {
   // it never selects a file.
   const { pathname } = new URL(req.url, `http://localhost:${PORT}`);
   const decoded = decodeURIComponent(pathname);
-  const requested = decoded.endsWith("/") ? `${decoded}index.html` : decoded;
+
+  /*
+   * Strip the deployed base path, so _site/ is reachable both at the root and under the
+   * prefix the built markup actually asks for.
+   *
+   * GitHub Pages mounts the artifact AT /<repo>/, so in production "/nfc-hubs/_engine/
+   * base.css" and "/_engine/base.css" name the same file. Emulating that here is what lets
+   * the suite request assets at their real production URLs - if `| url` were dropped from a
+   * template, the request would arrive unprefixed, and tests/validation/path-prefix.spec.ts
+   * would catch it in the built output rather than after a deploy.
+   */
+  const unprefixed = decoded.startsWith(PATH_PREFIX)
+    ? decoded.slice(PATH_PREFIX.length - 1)
+    : decoded;
+
+  const requested = unprefixed.endsWith("/") ? `${unprefixed}index.html` : unprefixed;
   const filePath = resolve(join(ROOT, `.${requested}`));
 
   // Refuse anything that escapes _site/ via ../ traversal.

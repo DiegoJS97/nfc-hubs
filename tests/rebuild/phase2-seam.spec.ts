@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 import { test, expect } from "@playwright/test";
 
+import { PATH_PREFIX } from "../../scripts/lib/path-prefix.mjs";
 import { hubs } from "../lib/hubs";
 
 /**
@@ -137,8 +138,13 @@ test.describe("Phase 2 seam", () => {
           } else if (url === TRACER_TEL_HREF) {
             // Assembled from contact.phone, which the tracer rewrote - so it came from data.
             fromData.push(url);
-          } else if (/^\/(_engine|businesses)\//.test(url) || url.startsWith("#")) {
-            // First-party asset or in-page anchor - not a business destination.
+          } else if (
+            new RegExp(`^${PATH_PREFIX}(_engine|businesses)/`).test(url) ||
+            url.startsWith("#")
+          ) {
+            // First-party asset or in-page anchor - not a business destination. The prefix is
+            // required, not optional: an unprefixed asset path is a deploy bug that
+            // tests/validation/path-prefix.spec.ts owns, and must not be waved through here.
           } else {
             untraceable.push(`${hub.slug}: ${url}`);
           }

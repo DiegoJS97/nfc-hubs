@@ -10,8 +10,15 @@
       tracker appears anywhere on this page (FR-022, D7) - the system font stack in
       base.css is what keeps that promise cheap.
     #}
-    <link rel="stylesheet" href="/_engine/base.css" />
-    <link rel="stylesheet" href="/businesses/{{ slug }}/theme.css" />
+    {#
+      Every first-party path goes through `| url`, which prepends the Eleventy pathPrefix.
+      GitHub Pages serves this repo as a PROJECT page under /<repo>/, so a bare "/_engine/..."
+      would 404 in production while working perfectly on a root-served host - a page that
+      renders unstyled only after deploy. The filter is the whole defence; scripts/lib/
+      path-prefix.mjs is the single place the value lives.
+    #}
+    <link rel="stylesheet" href="{{ '/_engine/base.css' | url }}" />
+    <link rel="stylesheet" href="{{ ('/businesses/' + slug + '/theme.css') | url }}" />
   </head>
 
   <body class="hub hub--{{ businesses[slug].register }}">
@@ -61,11 +68,11 @@
       Deferred so it never blocks the first render. The page is fully readable without it;
       its only job is showing the pending notice on tap (FR-024).
     #}
-    <script src="/_engine/pending.js" defer></script>
+    <script src="{{ '/_engine/pending.js' | url }}" defer></script>
 
     {% if resolve.hasVcard(business) %}
       {# Only the hub that actually has a save-contact entry pays for this (FR-017, FR-022). #}
-      <script src="/_engine/vcard.js" defer></script>
+      <script src="{{ '/_engine/vcard.js' | url }}" defer></script>
     {% endif %}
   </body>
 </html>
