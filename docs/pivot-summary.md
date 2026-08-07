@@ -188,9 +188,10 @@ needs a version bump (MINOR — material expansion of existing guidance) and a l
 - **The fictional name is unverified.** "Taberna Vela y Sal" was invented and is not intended to
   resemble any real venue, but that has not been checked against a registry or a search. Worth
   five minutes before showing it to anyone.
-- **`contact.phone` is `+34 600 000 000`**, chosen to look obviously fake. Once the `tel` type
-  ships, a `tel:` link that dials a real stranger is the failure mode. Confirm the number is
-  unassigned, or replace it, before that entry goes live.
+- **`contact.phone` is the sentinel**, for the same reason as `placeId`. Spain has no reserved
+  fictional number range, so any plausible-looking `+34` number may belong to someone, and the
+  failure mode once the `tel` type ships is a customer dialling a stranger. It stays unconfirmed
+  until a real number exists; the entry will render as pending in the meantime, which is correct.
 - **No business declares a `vcard` entry**, so the confirmed branch of `entry-vcard.njk` has
   nothing to render it. `vcard-module.spec.ts` covers the shipped generator by loading it onto the
   demo page with an injected trigger, and states this limit in the file. It says nothing about
@@ -224,7 +225,7 @@ Not touched in this session. All of them describe the two-archetype world.
 
 ```bash
 npm run build && npm run test    # 75 passed, 5 skipped
-npm run audit:placeholders       # 2 remaining: placeId, and the maps entry's interim url
+npm run audit:placeholders       # 3 remaining: placeId, contact.phone, the maps entry's interim url
 ```
 
 The built demo hub is `_site/demo/index.html`; every first-party reference in it begins with
