@@ -1,6 +1,6 @@
 # NFC Hubs — Project Overview
 
-**Status:** Phase 1 built, verified, and deployed. Live at
+**Status:** Phase 1 built, verified on real hardware, and deployed. Live at
 <https://diegojs97.github.io/nfc-hubs/demo/>.
 **Last updated:** 2026-08-08
 
@@ -206,31 +206,51 @@ centralised so it can be rerouted through a measurement endpoint without rewriti
    the full address, this must be settled *before* writing any venue's tags — changing it afterwards
    means re-programming them all by hand.
 
-3. **Real-device verification of the contact card — the one unresolved technical risk.**
-   "Save contact" generates its card entirely on the phone. It works in automated testing, but
-   automated testing runs a browser *engine*, not an iPhone. Whether iOS Safari opens the contacts
-   importer when handed a generated file is a known-fragile behaviour that no amount of automation
-   can confirm. It must be checked on real hardware.
+3. **A perception check on the dark theme.** Automated contrast checking evaluates *declared*
+   colours; it cannot say whether a design is comfortable for a real eye, dark-adapted, at low
+   brightness. That check is deliberately deferred rather than merely outstanding: the current dark
+   theme is one example instance of the theming system, and a real client will most likely pick
+   their own palette. It is worth doing against *their* theme, when the answer means something.
 
-   If it fails, there is a fallback — serving a pre-built contact file as an ordinary link — but it
-   works differently from what the specification currently requires, so it would be handled as a
-   documented change rather than a silent substitution. It is the item most likely to require
-   rework, and it is deliberately on the table now rather than discovered on launch day.
+**Resolved: the contact card on real hardware.**
+This used to be listed here as the project's one unresolved technical risk, and it is now closed.
+"Save contact" generates its card entirely on the phone, and whether iOS Safari opens the contacts
+importer when handed a generated file is a known-fragile behaviour that no amount of automation can
+confirm — automated testing runs a browser *engine*, not an iPhone. It was checked on real
+hardware: **iOS Safari opens the importer, and Android Chrome imports the card**, both with every
+field intact.
 
-   With one honest wrinkle added by the archetype change: since no venue currently declares the
-   save-contact entry, the device test requires temporarily enabling it with test data. The
-   procedure is described in [`t039-device-checks.md`](./t039-device-checks.md).
+That matters beyond one feature. The fallback, had it failed, was to serve a pre-built contact file
+as an ordinary link — which works differently from what the specification requires, so it would
+have meant a documented spec change rather than a silent substitution. It was the item most likely
+to force rework, and it did not.
 
-Alongside that, a short list of device checks remains: the contact card on Android, reading the
-nocturnal design in an actually dark room (automated contrast checking only evaluates declared
-colours, not perception), and confirming a tag opens correctly with the phone both locked and
-unlocked.
+One honest limit on that result: since no venue currently declares the save-contact entry, the
+check ran against test data enabled temporarily and then reverted, per
+[`t039-device-checks.md`](./t039-device-checks.md). What is proven is the mechanism, not any
+particular contact card — the first real client that uses the feature is worth re-checking against
+their own values.
+
+**Also resolved: a tag opens the hub from a real tap** — on both an iPhone and an Android, with the
+phone unlocked and locked. Each platform draws its line in a different place, and the difference is
+worth knowing before it comes up at a table:
+
+- **iPhone** reads the tag whenever the **screen is on**, whether or not the phone is locked. Only
+  a fully asleep screen does nothing. That is Apple's documented design for background tag reading,
+  not a limitation here.
+- **Android** requires the phone to be **unlocked**, with no setting to relax it on the device
+  tested.
+
+Neither is a defect, and both satisfy the requirement that a tap needs no steps beyond the phone's
+normal flow — because in each case that *is* the phone's normal flow. In practice an iPhone
+customer usually just wakes the screen; an Android customer unlocks. Better said to a venue up
+front than discovered after a complaint.
 
 ---
 
 ## Roadmap
 
-**Phase 1 — static hubs.** *(built and deployed; pending a real client and device verification)*
+**Phase 1 — static hubs.** *(built, deployed, and verified on real devices; pending a real client)*
 A configurable archetype on a shared engine, servable as plain files over HTTPS with no backend.
 Ends when a real venue has its data in place, its tags written, and its pages live.
 
@@ -253,11 +273,11 @@ confirmed stays marked as pending until they do.
 
 ## Summary
 
-Phase 1 is functionally complete, independently verified against its own specification, and
-deployed. The engineering risk is low and concentrated in one identified place: the contact card's
-behaviour on real iPhones. The work remaining before a real launch is mostly non-technical: getting
-a venue, collecting its information, and settling a web address that becomes permanent from then
-on.
+Phase 1 is functionally complete, independently verified against its own specification, deployed,
+and now checked on real phones. The one engineering risk that could have forced rework — the
+contact card's behaviour on real iPhones — has been tested and closed, which means the remaining
+work before a real launch is almost entirely non-technical: getting a venue, collecting its
+information, and settling a web address that becomes permanent from then on.
 
 The central design choice is that everything physical and expensive to change is decided once, and
 everything else stays editable. That is what makes a second phase an addition rather than a
