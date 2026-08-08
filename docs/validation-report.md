@@ -15,10 +15,11 @@ SC-001…SC-010, including the ones that **cannot pass yet** and why.
 > and "each instance chooses". A report still citing the old requirements is not validating the
 > product, it is validating a contract that no longer exists.
 
-> **T040 is still not complete.** Six of ten criteria pass outright. SC-003 now passes, which it
-> did not before. The other three cannot be closed from this machine: they depend on real hardware
-> or on a second configured instance. They are listed as PARTIAL with the specific dependency,
-> rather than being marked green on partial evidence.
+> **T040 is still not complete.** Seven of ten criteria pass outright — SC-003 and SC-006 both
+> closed after the previous revision, the first by the deployment and the second by the T039 device
+> checks. The other three cannot be closed from this machine: they depend on hardware still to be
+> tested or on a second configured instance. They are listed as PARTIAL with the specific
+> dependency, rather than being marked green on partial evidence.
 
 ## Summary
 
@@ -29,7 +30,7 @@ SC-001…SC-010, including the ones that **cannot pass yet** and why.
 | SC-003 static over HTTPS | ✅ PASS | — *(closed by the deployment)* |
 | SC-004 data-only replacement | ✅ PASS | — |
 | SC-005 own visual identity | ⚠️ PARTIAL | a real client's theme + a second instance |
-| SC-006 vCard in both states | ⚠️ PARTIAL | no business declares `vcard`; real import (T039) |
+| SC-006 vCard in both states | ✅ PASS | — *(mechanism verified; see the scope note)* |
 | SC-007 no WiFi/counters/app links | ✅ PASS | — |
 | SC-008 payload and timing | ⚠️ PARTIAL | iOS timing unmeasurable (see below) |
 | SC-009 identical render with `?m=` | ✅ PASS | — |
@@ -133,25 +134,37 @@ identity" on a fictional venue's palette says nothing useful about the product. 
 is deferred until a real client's theme exists — which is also the moment its comparative half
 becomes meaningful again.
 
-### ⚠️ SC-006 — The vCard is produced only when all four values are confirmed
+### ✅ SC-006 — The vCard is produced only when all four values are confirmed
 
-**Partial, and also weaker than before, for a different reason.**
+**Passes. The last outstanding half — real-device import — was closed on 2026-08-08.**
 
-Verified: the generator as shipped in `src/_engine/vcard.js` produces a vCard 3.0 with all four
-values, with CRLF line endings and RFC 2426 escaping of `,` `;` `\`, with no network request, on
-both emulated engines. The **loading seam** is verified too: a hub downloads `/_engine/vcard.js` if
-and only if its data declares a `vcard` entry, derived from each business's data rather than from a
-particular business name.
+Verified automatically: the generator as shipped in `src/_engine/vcard.js` produces a vCard 3.0
+with all four values, with CRLF line endings and RFC 2426 escaping of `,` `;` `\`, with no network
+request, on both emulated engines. The **loading seam** is verified too: a hub downloads
+`/_engine/vcard.js` if and only if its data declares a `vcard` entry, derived from each business's
+data rather than from a particular business name. With any value still a placeholder, tapping
+produces the notice and **no download** — asserted by waiting for a download event that must not
+fire.
 
-Not verified, and this is the new gap: **no business in the repository declares a `vcard` entry
-today**, so the confirmed branch of `entry-vcard.njk` has no business rendering it.
-`tests/e2e/vcard-module.spec.ts` covers the generator by loading the shipped module onto the demo
-page and driving it with an injected button, and states that limit in the file itself.
+Verified on real hardware (T039, checks 1 and 2): **iOS Safari opens the contact importer** with a
+browser-generated vCard, and Android Chrome imports it. Both platforms show all four values with
+the address intact as a single field, so the RFC 2426 escaping holds outside the automated test as
+well. This closes research.md **D5**, the project's one architecture-level assumption, and means
+**FR-020 stands as written** — the static-`.vcf` fallback, which would have contradicted it and
+required a spec amendment, is not needed.
 
-Also not verified, as before: **whether iOS Safari actually opens the contact importer.** This is
-the known fragile assumption (research.md D5). An emulated WebKit exercises the Blob and the
-`download` attribute; it does not exercise how iOS treats the resulting file. That goes to T039,
-which now requires temporarily enabling a `vcard` entry with test data.
+> **Scope of this PASS.** What is verified is the **mechanism**, not the live page as it ships.
+> No business in the repository declares a `vcard` entry, so the confirmed branch of
+> `entry-vcard.njk` has no business rendering it in production. Both the automated coverage and
+> the device checks reach it the same documented way: `tests/e2e/vcard-module.spec.ts` loads the
+> shipped module onto the demo page with an injected trigger, and T039 uses the temporary swap in
+> [`t039-device-checks.md`](./t039-device-checks.md) — confirm the phone, add the entry, revert
+> before committing.
+>
+> So this criterion is **verified for the mechanism, not demonstrated on the live production page
+> as-is**. The first real client that declares a `vcard` entry demonstrates it end to end without
+> any swap, and the device checks are worth repeating then against that client's own values —
+> what was proven here is the machinery, not any particular contact card.
 
 ### ✅ SC-007 — No WiFi connection mechanism, visit counters, or app links
 
@@ -198,12 +211,12 @@ toward (research.md D8). T039.
 
 ## What must happen to close T040
 
-1. **Complete T039** on real hardware — see [`t039-device-checks.md`](./t039-device-checks.md). It
-   closes the outstanding halves of SC-006, SC-008, and SC-010. It now requires temporarily
-   enabling a `vcard` entry with test data, because no business declares one. Its four checks are
-   prioritised: check 1 (iOS vCard) is the only one that can change the plan, and check 4 (NFC tap)
-   is already effectively closed on Android, with lock-screen reading recorded as a platform
-   constraint rather than a defect.
+1. **Finish T039** on real hardware — see [`t039-device-checks.md`](./t039-device-checks.md).
+   Checks 1 and 2 (iOS and Android vCard import) passed on 2026-08-08 and closed SC-006; check 4
+   passed on Android, with lock-screen reading recorded as a platform constraint rather than a
+   defect. Still open: **check 4 on iPhone**, and **check 3** (nocturnal contrast), which closes the
+   outstanding half of SC-010. SC-008's iOS timing gap has no check that can close it on this
+   hardware. T039 stays unticked in `tasks.md` until both are done.
 2. **Get a real client's theme and configure a second instance.** That is what gives SC-005 both
    halves back, and what makes T039's check 3 evaluate a palette somebody will actually use. Until
    then SC-005 is declared untestable, not passed.
