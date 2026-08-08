@@ -28,7 +28,7 @@ SC-001…SC-010, incluidos los que **todavía no pueden pasar** y por qué.
 | SC-002 comportamiento pendiente | ✅ PASA | — |
 | SC-003 estático sobre HTTPS | ✅ PASA | — *(cerrado con el despliegue)* |
 | SC-004 sustitución solo de datos | ✅ PASA | — |
-| SC-005 identidad visual propia | ⚠️ PARCIAL | juicio humano (T039) + una segunda instancia |
+| SC-005 identidad visual propia | ⚠️ PARCIAL | el tema de un cliente real + una segunda instancia |
 | SC-006 vCard en sus dos estados | ⚠️ PARCIAL | ningún negocio declara `vcard`; importación real (T039) |
 | SC-007 sin WiFi/contadores/apps | ✅ PASA | — |
 | SC-008 peso y tiempos | ⚠️ PARCIAL | los tiempos en iOS no son medibles (ver abajo) |
@@ -127,10 +127,14 @@ ahora explícitamente, en vez de dejar el criterio como si siguiera entero.
 
 De la primera mitad — que el hub no parezca generado por defecto — hay evidencia automática de que
 carga su propio tema y su propio registro visual, pero *que una persona lo perciba así* no lo
-puede zanjar ningún test. Va en la lista manual de T039.
+puede zanjar ningún test.
 
-Esto se cierra del todo cuando exista una segunda instancia configurada, que es el mismo momento
-en que el criterio vuelve a tener sentido.
+**Esa mitad tampoco está ya en T039.** Se retiró al reordenar las comprobaciones por prioridad: el
+tema de la demo es una instancia de ejemplo del sistema de temas (`base.css` pone la estructura y
+el suelo de accesibilidad; `theme.css` solo el color y la tipografía), así que juzgar «identidad
+propia» sobre la paleta de un local ficticio no dice nada útil sobre el producto. El criterio
+entero queda aplazado hasta que exista el tema de un cliente real — que es también el momento en
+que su mitad comparativa vuelve a tener sentido.
 
 ### ⚠️ SC-006 — La vCard se produce solo cuando los cuatro valores están confirmados
 
@@ -200,10 +204,15 @@ que empuja FR-015 (research.md D8). T039.
 ## Qué falta para cerrar T040
 
 1. **Completar T039** en hardware real — ver [`t039-device-checks.md`](./t039-device-checks.md).
-   Cierra las mitades pendientes de SC-005, SC-006, SC-008 y SC-010. Ahora requiere activar
-   temporalmente una entrada `vcard` con datos de prueba, porque ningún negocio declara una.
-2. **Configurar una segunda instancia**, momento en el que la mitad comparativa de SC-005 vuelve a
-   ser comprobable. Hasta entonces está declarada como no comprobable, no como aprobada.
+   Cierra las mitades pendientes de SC-006, SC-008 y SC-010. Ahora requiere activar temporalmente
+   una entrada `vcard` con datos de prueba, porque ningún negocio declara una. Sus cuatro
+   comprobaciones están priorizadas: la 1 (vCard en iOS) es la única que puede cambiar el plan, y
+   la 4 (tap NFC) ya está prácticamente cerrada en Android, con la lectura en pantalla bloqueada
+   anotada como restricción de plataforma y no como defecto.
+2. **Conseguir el tema de un cliente real y configurar una segunda instancia.** Es lo que devuelve
+   a SC-005 ambas mitades, y lo que hace que la comprobación 3 de T039 evalúe una paleta que
+   alguien vaya a usar de verdad. Hasta entonces SC-005 está declarado como no comprobable, no
+   como aprobado.
 3. **Conseguir un local real** y sus datos. No es un criterio en sí mismo, pero mientras tanto lo
    único que existe es una demo ficticia, y los tres valores centinela que quedan seguirán —
    correctamente — sin confirmar.
