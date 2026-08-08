@@ -1,230 +1,223 @@
-# Informe de validación de la Fase 1 (T040)
+# Phase 1 Validation Report (T040)
 
-**Fecha:** 2026-08-08
-**Suite:** 80 comprobaciones automáticas definidas — **75 pasan, 5 saltadas deliberadamente**, 0 fallando
-**Compilación:** `_site/demo/index.html`
-**En vivo:** <https://diegojs97.github.io/nfc-hubs/demo/>
-**Valores pendientes:** 3, todos en `demo` y todos deliberados
+**Date:** 2026-08-08
+**Suite:** 80 automated checks defined — **75 pass, 5 deliberately skipped**, 0 failing
+**Build:** `_site/demo/index.html`
+**Live:** <https://diegojs97.github.io/nfc-hubs/demo/>
+**Outstanding placeholders:** 3, all in `demo` and all deliberate
 
-Esta es la pasada de validación de `quickstart.md`. Registra el estado de cada criterio de éxito
-SC-001…SC-010, incluidos los que **todavía no pueden pasar** y por qué.
+This is the `quickstart.md` validation run. It records the state of every success criterion
+SC-001…SC-010, including the ones that **cannot pass yet** and why.
 
-> **Contra qué se valida.** Este informe se reescribió después del cambio de arquetipo
-> (`docs/pivot-summary.md`). La versión anterior validaba contra los antiguos FR-016 y FR-018, que
-> mandaban dos secuencias de entradas con nombre propio; el commit `4cd2737` los sustituyó por un
-> catálogo de tipos y por «cada instancia elige». Un informe que siga citando los requisitos
-> viejos no está validando el producto, está validando un contrato que ya no existe.
+> **What this validates against.** This report was rewritten after the archetype pivot
+> (`docs/pivot-summary.md`). The previous version validated against the old FR-016 and FR-018,
+> which mandated two named entry sequences; commit `4cd2737` replaced them with a catalog of types
+> and "each instance chooses". A report still citing the old requirements is not validating the
+> product, it is validating a contract that no longer exists.
 
-> **T040 sigue sin estar completo.** Seis de diez criterios pasan del todo. SC-003 pasa ya, cosa
-> que antes no ocurría. Los otros tres no se pueden cerrar desde esta máquina: dependen de
-> hardware real o de una segunda instancia configurada. Se listan como PARCIAL con la dependencia
-> concreta, en vez de darse por verdes con evidencia a medias.
+> **T040 is still not complete.** Six of ten criteria pass outright. SC-003 now passes, which it
+> did not before. The other three cannot be closed from this machine: they depend on real hardware
+> or on a second configured instance. They are listed as PARTIAL with the specific dependency,
+> rather than being marked green on partial evidence.
 
-## Resumen
+## Summary
 
-| Criterio | Estado | Bloqueado por |
-|-----------|--------|---------------|
-| SC-001 orden de entradas | ✅ PASA | — |
-| SC-002 comportamiento pendiente | ✅ PASA | — |
-| SC-003 estático sobre HTTPS | ✅ PASA | — *(cerrado con el despliegue)* |
-| SC-004 sustitución solo de datos | ✅ PASA | — |
-| SC-005 identidad visual propia | ⚠️ PARCIAL | el tema de un cliente real + una segunda instancia |
-| SC-006 vCard en sus dos estados | ⚠️ PARCIAL | ningún negocio declara `vcard`; importación real (T039) |
-| SC-007 sin WiFi/contadores/apps | ✅ PASA | — |
-| SC-008 peso y tiempos | ⚠️ PARCIAL | los tiempos en iOS no son medibles (ver abajo) |
-| SC-009 render idéntico con `?m=` | ✅ PASA | — |
-| SC-010 WCAG 2.2 AA | ⚠️ PARCIAL | percepción con poca luz (T039) |
+| Criterion | Status | Blocked on |
+|-----------|--------|------------|
+| SC-001 entry order | ✅ PASS | — |
+| SC-002 pending behaviour | ✅ PASS | — |
+| SC-003 static over HTTPS | ✅ PASS | — *(closed by the deployment)* |
+| SC-004 data-only replacement | ✅ PASS | — |
+| SC-005 own visual identity | ⚠️ PARTIAL | a real client's theme + a second instance |
+| SC-006 vCard in both states | ⚠️ PARTIAL | no business declares `vcard`; real import (T039) |
+| SC-007 no WiFi/counters/app links | ✅ PASS | — |
+| SC-008 payload and timing | ⚠️ PARTIAL | iOS timing unmeasurable (see below) |
+| SC-009 identical render with `?m=` | ✅ PASS | — |
+| SC-010 WCAG 2.2 AA | ⚠️ PARTIAL | low-light perception (T039) |
 
-## Detalle
+## Detail
 
-### ✅ SC-001 — El hub muestra todas sus entradas en el orden que definen sus datos
+### ✅ SC-001 — The hub shows every entry in the order its data defines
 
-`tests/e2e/demo.spec.ts` comprueba la secuencia de etiquetas renderizada contra la lista que
-declara `business.json`, en los dos dispositivos emulados, y verifica por separado que el orden de
-ids del array es el orden que sale en la página — nada ordena ni filtra.
+`tests/e2e/demo.spec.ts` checks the rendered label sequence against the list `business.json`
+declares, on both emulated devices, and separately verifies that the array's id order is the order
+that reaches the page — nothing sorts or filters.
 
-**Qué cambió respecto al informe anterior.** Antes esto se afirmaba contra una secuencia mandada
-por la especificación (7 entradas en `copas`, 8 en `tapas`) y `validate.js` la imponía en tiempo
-de compilación. Ahora la secuencia es un dato del negocio (FR-018), así que el test afirma lo que
-ve un cliente de *este* local y deliberadamente **no** afirma una secuencia que otro negocio deba
-copiar. La comprobación de orden de `validate.js` sigue viva y sigue probada, pero contra
-`tests/fixtures/`, no contra un negocio real.
+**What changed since the previous report.** This used to be asserted against a spec-mandated
+sequence (7 entries on `copas`, 8 on `tapas`), enforced at build time by `validate.js`. The
+sequence is now business data (FR-018), so the test asserts what a customer of *this* venue sees
+and deliberately does **not** assert a sequence any other business must copy. `validate.js`'s order
+check is still live and still tested, but against `tests/fixtures/`, not against a real business.
 
-### ✅ SC-002 — Toda entrada sin confirmar muestra el aviso y no navega nunca
+### ✅ SC-002 — Every unconfirmed entry shows the notice and never navigates
 
-`tests/e2e/demo.spec.ts` toca cada control `[data-pending]`, comprueba que la URL no cambia y que
-el aviso se hace visible. El recuento se afirma explícitamente (2 entradas: [ES] «Cómo llegar» y
-[ES] «Reseña Google»), de modo que la comprobación no puede pasar contra un conjunto vacío.
+`tests/e2e/demo.spec.ts` taps every `[data-pending]` control, checks that the URL does not change
+and that the notice becomes visible. The count is asserted explicitly (2 entries: [ES] "Cómo
+llegar" and [ES] "Reseña Google"), so the check cannot pass against an empty set.
 
-Además se afirma que la cadena `PLACEHOLDER` no aparece en ningún sitio del texto renderizado, y
-que ningún `href` de la página resuelve a un destino de Google Maps o de reseñas mientras el
-`placeId` siga sin confirmar. Ese segundo test es el guardián directo del fallo del que trata el
-Principio VII de la constitución: una demo apuntando al negocio de otro.
+It also asserts that the string `PLACEHOLDER` appears nowhere in the rendered text, and that no
+`href` on the page resolves to a Google Maps or review destination while `placeId` remains
+unconfirmed. That second test is the direct guard against the failure Constitution VII is about: a
+demo pointing at somebody else's business.
 
-### ✅ SC-003 — Desplegable como contenido estático sobre HTTPS sin componente de servidor
+### ✅ SC-003 — Deployable as static content over HTTPS with no server component
 
-**Cerrado. Era el único ⛔ del informe anterior.**
+**Closed. This was the only ⛔ in the previous report.**
 
-El sitio está en vivo en <https://diegojs97.github.io/nfc-hubs/demo/>, con HTTPS forzado,
-desplegado por `.github/workflows/deploy.yml` desde `master`. No hay ningún proceso de aplicación:
-GitHub Pages sirve ficheros.
+The site is live at <https://diegojs97.github.io/nfc-hubs/demo/>, with HTTPS enforced, deployed by
+`.github/workflows/deploy.yml` from `master`. There is no application process: GitHub Pages serves
+files.
 
-Lo que verifica la suite: `npm run build` emite ficheros planos, y los tests corren contra esos
-ficheros servidos por un servidor estático sin proceso de aplicación.
+What the suite verifies: `npm run build` emits plain files, and the tests run against those files
+served by a static server with no application process.
 
-Lo que verificó el despliegue y la suite local no podía: que la compilación pasa entera en un
-Ubuntu limpio y no solo en la máquina de desarrollo, y que la **ruta base** coincide con el
-nombre real del repositorio. Ese segundo punto merece su propio párrafo.
+What the deployment verified and the local suite could not: that the build passes in full on a
+clean Ubuntu and not only on the development machine, and that the **base path** matches the real
+repository name. That second point deserves its own paragraph.
 
-#### La ruta base, y por qué necesitó una comprobación aparte
+#### The base path, and why it needed a separate check
 
-Una *project page* de GitHub se sirve desde `https://<usuario>.github.io/<repo>/`. Las referencias
-a assets del layout eran absolutas, así que los hubs desplegados habrían cargado su HTML y luego
-dado 404 en `base.css`, `theme.css` y `pending.js` — sin estilos, sin comportamiento de pendiente,
-y **invisible en cualquier prueba local servida desde la raíz**.
+A GitHub *project page* is served from `https://<user>.github.io/<repo>/`. The layout's asset
+references were absolute, so the deployed hubs would have loaded their HTML and then 404'd on
+`base.css`, `theme.css`, and `pending.js` — unstyled, with no pending behaviour, and **invisible in
+any local run served from the root**.
 
-`tests/validation/path-prefix.spec.ts` afirma las dos mitades: que toda referencia de primera
-parte lleva el prefijo (detecta un `| url` que se cayó), y que cada una corresponde a un fichero
-presente en `_site/` (detecta un prefijo puesto pero equivocado).
+`tests/validation/path-prefix.spec.ts` asserts both halves: that every first-party reference
+carries the prefix (catches a dropped `| url`), and that each one maps to a file present in
+`_site/` (catches a prefix that is set but wrong).
 
-Lo que esa prueba **no** puede saber es si el prefijo coincide con el nombre real del repositorio:
-en local es cierto por definición, porque el compilador y el servidor de tests leen la misma
-constante. Eso lo comprueba un paso del workflow contra
-`github.event.repository.name`, y es la única comprobación que solo CI puede hacer.
+What that test **cannot** know is whether the prefix matches the real repository name: locally it
+is true by definition, because the builder and the test server read the same constant. That is
+checked by a workflow step against `github.event.repository.name`, and it is the one check only CI
+can make.
 
-### ✅ SC-004 — Sustituir un dato pendiente no toca ningún fichero de estructura ni de estilos
+### ✅ SC-004 — Replacing placeholder data touches no structure or layout file
 
-`tests/rebuild/data-swap.spec.ts` sustituye un valor por uno confirmado, recompila y comprueba que
-la entrada pasa a ser un enlace real con su aviso desaparecido — y luego restaura el centinela y
-comprueba que el estado pendiente vuelve exactamente. En ninguna de las dos direcciones se toca
-una plantilla, una hoja de estilos ni un fichero del motor.
+`tests/rebuild/data-swap.spec.ts` substitutes one confirmed value, rebuilds, and checks that the
+entry becomes a real link with its notice gone — then restores the sentinel and checks that the
+pending state returns exactly. No template, stylesheet, or engine file is touched in either
+direction.
 
-`tests/rebuild/phase2-seam.spec.ts` prueba además que ningún destino está incrustado en el código,
-por rastreo y no por inspección: todo `url` de la salida compilada tiene que poder trazarse hasta
-`business.json`.
+`tests/rebuild/phase2-seam.spec.ts` additionally proves that no destination is hardcoded, by trace
+rather than by inspection: every `url` in the built output must trace back to `business.json`.
 
-> **Nota sobre T038.** `resolve.js` contiene ahora **dos** plantillas de URL externas, no una: la
-> base de writereview de Google y la base de la ficha de Google Maps. Ambas existen porque el
-> esquema prohíbe una clave `url` en las entradas `review` y `maps`; la parte que identifica al
-> negocio (`placeId`) sigue siendo un dato. La lista de excepciones del test es explícita y tiene
-> exactamente dos elementos. Añadir una tercera debe seguir siendo un acto deliberado y visible en
-> revisión.
+> **Note on T038.** `resolve.js` now holds **two** external URL templates, not one: the Google
+> writereview base and the Google Maps place base. Both exist because the schema forbids a `url`
+> key on `review` and `maps` entries; the business-identifying part (`placeId`) is still data. The
+> test's exception list is explicit and has exactly two members. Adding a third must remain a
+> deliberate act visible in review.
 
-> **Nota sobre el aislamiento.** Estos dos tests están en `tests/rebuild/` y corren los últimos y
-> con `--workers=1`. Reescriben `business.json` y recompilan `_site/` mientras el resto de la
-> suite lee ambas cosas; en paralelo compiten. La carrera existía desde antes del cambio de
-> arquetipo pero el campo mutado nunca se afirmaba, así que era invisible. Pasó dos veces antes de
-> fallar, que es peor que fallar en seco.
+> **Note on isolation.** These two tests live in `tests/rebuild/` and run last, with
+> `--workers=1`. They rewrite `business.json` and rebuild `_site/` while the rest of the suite
+> reads both; in parallel they race. The race predates the archetype pivot, but the mutated field
+> was never asserted, so it was invisible. It passed twice before failing, which is worse than
+> failing outright.
 
-### ⚠️ SC-005 — Un hub se lee como la página de ese local y no como un resultado por defecto
+### ⚠️ SC-005 — A hub reads as that venue's own page rather than a default-generated result
 
-**Parcial, y este criterio se ha debilitado de forma real con el cambio de arquetipo.**
+**Partial, and this criterion genuinely weakened with the archetype pivot.**
 
-El criterio tenía dos mitades. La segunda — que un usuario comparando dos hubs los identifique
-como negocios distintos y no como la misma plantilla recoloreada — **no es comprobable hoy**: solo
-hay una instancia configurada, así que no hay nada que comparar. La propia especificación lo dice
-ahora explícitamente, en vez de dejar el criterio como si siguiera entero.
+The criterion had two halves. The second — that a user comparing two hubs identifies them as
+distinct businesses rather than the same template recoloured — is **not testable today**: there is
+only one configured instance, so there is nothing to compare. The specification now says so
+explicitly, rather than leaving the criterion looking intact.
 
-De la primera mitad — que el hub no parezca generado por defecto — hay evidencia automática de que
-carga su propio tema y su propio registro visual, pero *que una persona lo perciba así* no lo
-puede zanjar ningún test.
+For the first half — that the hub does not look default-generated — there is automated evidence
+that it loads its own theme and its own visual register, but *whether a person perceives it that
+way* is not something any test can settle.
 
-**Esa mitad tampoco está ya en T039.** Se retiró al reordenar las comprobaciones por prioridad: el
-tema de la demo es una instancia de ejemplo del sistema de temas (`base.css` pone la estructura y
-el suelo de accesibilidad; `theme.css` solo el color y la tipografía), así que juzgar «identidad
-propia» sobre la paleta de un local ficticio no dice nada útil sobre el producto. El criterio
-entero queda aplazado hasta que exista el tema de un cliente real — que es también el momento en
-que su mitad comparativa vuelve a tener sentido.
+**That half is no longer in T039 either.** It was removed when the checks were reordered by
+priority: the demo's theme is one example instance of the theming system (`base.css` provides
+structure and the accessibility floor; `theme.css` only colour and typography), so judging "own
+identity" on a fictional venue's palette says nothing useful about the product. The whole criterion
+is deferred until a real client's theme exists — which is also the moment its comparative half
+becomes meaningful again.
 
-### ⚠️ SC-006 — La vCard se produce solo cuando los cuatro valores están confirmados
+### ⚠️ SC-006 — The vCard is produced only when all four values are confirmed
 
-**Parcial, y también más débil que antes, por una razón distinta.**
+**Partial, and also weaker than before, for a different reason.**
 
-Verificado: el generador tal y como se publica en `src/_engine/vcard.js` produce una vCard 3.0 con
-los cuatro valores, con finales de línea CRLF y escapado RFC 2426 de `,` `;` `\`, sin ninguna
-petición de red, en los dos motores emulados. También está verificado el **seam de carga**: un hub
-descarga `/_engine/vcard.js` si y solo si sus datos declaran una entrada `vcard`, derivado de los
-datos de cada negocio y no de un nombre de negocio concreto.
+Verified: the generator as shipped in `src/_engine/vcard.js` produces a vCard 3.0 with all four
+values, with CRLF line endings and RFC 2426 escaping of `,` `;` `\`, with no network request, on
+both emulated engines. The **loading seam** is verified too: a hub downloads `/_engine/vcard.js` if
+and only if its data declares a `vcard` entry, derived from each business's data rather than from a
+particular business name.
 
-No verificado, y este es el hueco nuevo: **ningún negocio del repositorio declara hoy una entrada
-`vcard`**, así que la rama confirmada de `entry-vcard.njk` no tiene ningún negocio que la
-renderice. `tests/e2e/vcard-module.spec.ts` cubre el generador cargando el módulo publicado sobre
-la página de la demo y disparándolo con un botón inyectado, y deja escrito ese límite en el propio
-fichero.
+Not verified, and this is the new gap: **no business in the repository declares a `vcard` entry
+today**, so the confirmed branch of `entry-vcard.njk` has no business rendering it.
+`tests/e2e/vcard-module.spec.ts` covers the generator by loading the shipped module onto the demo
+page and driving it with an injected button, and states that limit in the file itself.
 
-No verificado tampoco, como antes: **si iOS Safari abre realmente el importador de contactos.**
-Esta es la suposición frágil conocida (research.md D5). Un WebKit emulado ejercita el Blob y el
-atributo `download`; no ejercita cómo trata iOS el fichero resultante. Va a T039, que ahora
-requiere activar temporalmente una entrada `vcard` con datos de prueba.
+Also not verified, as before: **whether iOS Safari actually opens the contact importer.** This is
+the known fragile assumption (research.md D5). An emulated WebKit exercises the Blob and the
+`download` attribute; it does not exercise how iOS treats the resulting file. That goes to T039,
+which now requires temporarily enabling a `vcard` entry with test data.
 
-### ✅ SC-007 — Sin mecanismo de conexión WiFi, sin contadores de visitas, sin enlaces a apps
+### ✅ SC-007 — No WiFi connection mechanism, visit counters, or app links
 
-El WiFi se renderiza como un `<div>` sin `<a>`, sin `<button>`, sin `role` y sin `tabindex`.
-`localStorage`, `sessionStorage` y `document.cookie` se afirman vacíos tras la carga. Toda petición
-se afirma de primera parte, así que ningún beacon ni contador puede estar llegando a ninguna
-parte.
+WiFi renders as a `<div>` with no `<a>`, no `<button>`, no `role`, and no `tabindex`.
+`localStorage`, `sessionStorage`, and `document.cookie` are asserted empty after load. Every
+request is asserted first-party, so no beacon or counter can be reaching anything.
 
-### ⚠️ SC-008 — ≤100 KB de peso; contenido esencial ≤1,5 s en 4G y ≤3 s degradado
+### ⚠️ SC-008 — ≤100 KB payload; essential content ≤1.5 s on 4G and ≤3 s degraded
 
-**Parcial — se cumple con holgura en Chromium; no es medible en WebKit.**
+**Partial — comfortably met on Chromium; unmeasurable on WebKit.**
 
-| | peso | 4G típico | degradado |
+| | payload | typical 4G | degraded |
 |---|---|---|---|
-| demo | 10 389 B (10,1 KB) | 286 ms | 577 ms |
-| presupuesto | 100 KB | 1500 ms | 3000 ms |
+| demo | 10,389 B (10.1 KB) | 286 ms | 577 ms |
+| budget | 100 KB | 1500 ms | 3000 ms |
 
-Desglose del peso: `/demo/` 2509 B, `base.css` 4507 B, `theme.css` 2057 B, `pending.js` 1316 B.
-No se descarga `vcard.js`, porque la demo no declara esa entrada — el seam de carga es visible
-directamente en la medición.
+Payload breakdown: `/demo/` 2509 B, `base.css` 4507 B, `theme.css` 2057 B, `pending.js` 1316 B.
+`vcard.js` is not downloaded, because the demo does not declare that entry — the loading seam is
+directly visible in the measurement.
 
-El peso y las afirmaciones de primera parte corren en los dos motores. **Los tiempos corren solo
-en Chromium**: el estrangulamiento de red requiere CDP, que WebKit no expone. Los tiempos de carga
-en iOS sobre la conexión degradada de un local siguen sin verificarse — es un hueco de cobertura
-real, y va con T039.
+Payload and first-party assertions run on both engines. **Timing runs on Chromium only**: network
+throttling requires CDP, which WebKit does not expose. iOS load timing on a venue's degraded
+connection therefore remains unverified — a real coverage gap, folded into T039.
 
-### ✅ SC-009 — Render idéntico con `?m=`, sin él, vacío y con un valor desconocido
+### ✅ SC-009 — Identical render with `?m=`, without it, empty, and with an unknown value
 
-`tests/e2e/table-param.spec.ts` compara el `innerHTML` de `<main>` entre las cuatro variantes y
-afirma igualdad byte a byte, además de que un token improbable pasado como `?m=` no aparece nunca
-en el texto renderizado y de que no se persiste nada en el cliente.
+`tests/e2e/table-param.spec.ts` compares `<main>`'s `innerHTML` across all four variants and
+asserts byte equality, plus that an improbable token passed as `?m=` never appears in the rendered
+text and that nothing is persisted client-side.
 
-### ⚠️ SC-010 — WCAG 2.2 AA sin fallos de contraste ni de tamaño de objetivo
+### ⚠️ SC-010 — WCAG 2.2 AA with zero contrast or target-size failures
 
-**Parcial — las comprobaciones automáticas están limpias; falta la comprobación perceptiva.**
+**Partial — automated checks clean; the perceptual check outstanding.**
 
-Verificado: axe reporta cero violaciones en `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` y
-`wcag22aa` sobre el hub en su registro nocturno. `color-contrast` y `target-size` se afirman
-además como *efectivamente evaluadas*, ya que un id de regla desconocido daría cero violaciones y
-pasaría sin haber comprobado nada. También se afirma que el estado pendiente sobrevive sin color.
+Verified: axe reports zero violations across `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, and
+`wcag22aa` on the hub in its nocturnal register. `color-contrast` and `target-size` are
+additionally asserted to have actually been *evaluated*, since an unknown rule id would yield zero
+violations and pass having checked nothing. The pending state is also asserted to survive without
+colour.
 
-No verificado: axe evalúa colores **declarados**. No puede decir si el registro nocturno resulta
-cómodo de leer en un móvil real en una habitación a oscuras, que es exactamente el escenario al
-que empuja FR-015 (research.md D8). T039.
+Not verified: axe evaluates **declared** colours. It cannot say whether the nocturnal register is
+comfortable to read on a real phone in a dark room, which is exactly the scenario FR-015 pushes
+toward (research.md D8). T039.
 
-## Qué falta para cerrar T040
+## What must happen to close T040
 
-1. **Completar T039** en hardware real — ver [`t039-device-checks.md`](./t039-device-checks.md).
-   Cierra las mitades pendientes de SC-006, SC-008 y SC-010. Ahora requiere activar temporalmente
-   una entrada `vcard` con datos de prueba, porque ningún negocio declara una. Sus cuatro
-   comprobaciones están priorizadas: la 1 (vCard en iOS) es la única que puede cambiar el plan, y
-   la 4 (tap NFC) ya está prácticamente cerrada en Android, con la lectura en pantalla bloqueada
-   anotada como restricción de plataforma y no como defecto.
-2. **Conseguir el tema de un cliente real y configurar una segunda instancia.** Es lo que devuelve
-   a SC-005 ambas mitades, y lo que hace que la comprobación 3 de T039 evalúe una paleta que
-   alguien vaya a usar de verdad. Hasta entonces SC-005 está declarado como no comprobable, no
-   como aprobado.
-3. **Conseguir un local real** y sus datos. No es un criterio en sí mismo, pero mientras tanto lo
-   único que existe es una demo ficticia, y los tres valores centinela que quedan seguirán —
-   correctamente — sin confirmar.
+1. **Complete T039** on real hardware — see [`t039-device-checks.md`](./t039-device-checks.md). It
+   closes the outstanding halves of SC-006, SC-008, and SC-010. It now requires temporarily
+   enabling a `vcard` entry with test data, because no business declares one. Its four checks are
+   prioritised: check 1 (iOS vCard) is the only one that can change the plan, and check 4 (NFC tap)
+   is already effectively closed on Android, with lock-screen reading recorded as a platform
+   constraint rather than a defect.
+2. **Get a real client's theme and configure a second instance.** That is what gives SC-005 both
+   halves back, and what makes T039's check 3 evaluate a palette somebody will actually use. Until
+   then SC-005 is declared untestable, not passed.
+3. **Get a real venue** and its data. Not a criterion in itself, but until then all that exists is
+   a fictional demo, and the three remaining sentinel values will — correctly — stay unconfirmed.
 
-Solo después de eso una pasada completa de `quickstart.md` significará lo que dice.
+Only after that does a full `quickstart.md` pass mean what it claims.
 
-## Cómo reproducir estos números
+## How to reproduce these numbers
 
 ```bash
-npm run build && npm test        # 75 pasan, 5 saltadas
-npm run audit:placeholders       # 3 pendientes: placeId, contact.phone, la url provisional de maps
+npm run build && npm test        # 75 pass, 5 skipped
+npm run audit:placeholders       # 3 outstanding: placeId, contact.phone, the interim maps url
 ```
 
-Las cifras de peso y tiempo las imprime `npm run test:budget` por consola en cada pasada; las de
-este informe salen de la ejecución del 2026-08-08 sobre el árbol limpio.
+The weight and timing figures are printed to the console by `npm run test:budget` on every run;
+those in this report come from the 2026-08-08 run against the clean tree.
