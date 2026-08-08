@@ -211,12 +211,14 @@ toward (research.md D8). T039.
 
 ## What must happen to close T040
 
-1. **Finish T039** on real hardware — see [`t039-device-checks.md`](./t039-device-checks.md).
-   Checks 1 and 2 (iOS and Android vCard import) passed on 2026-08-08 and closed SC-006; check 4
-   passed on Android, with lock-screen reading recorded as a platform constraint rather than a
-   defect. Still open: **check 4 on iPhone**, and **check 3** (nocturnal contrast), which closes the
-   outstanding half of SC-010. SC-008's iOS timing gap has no check that can close it on this
-   hardware. T039 stays unticked in `tasks.md` until both are done.
+1. **Finish T039** on real hardware — see [`t039-device-checks.md`](./t039-device-checks.md). All
+   four checks now have recorded results and the three that could have found a problem passed:
+   checks 1 and 2 (iOS and Android vCard import) closed SC-006, and check 4 closed on both
+   ecosystems — iPhone reads with the lock screen lit, per Apple's documented Background Tag
+   Reading behaviour; Android requires unlocking. Different thresholds, neither a defect, both
+   satisfying FR-010. Still open: **check 3** (nocturnal contrast), which closes the outstanding
+   half of SC-010 and is deferred on purpose until a real client's theme exists. T039 stays
+   unticked in `tasks.md` until it is done.
 2. **Get a real client's theme and configure a second instance.** That is what gives SC-005 both
    halves back, and what makes T039's check 3 evaluate a palette somebody will actually use. Until
    then SC-005 is declared untestable, not passed.
