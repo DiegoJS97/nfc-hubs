@@ -1,205 +1,262 @@
-# T039 — Real-Device Checks
+# T039 — Comprobaciones en dispositivo real
 
-Four checks that cannot be automated. Each one covers a claim the test suite is structurally
-unable to make: emulated WebKit is not an iPhone, and axe cannot see a dark room.
+Cuatro comprobaciones que no se pueden automatizar. Cada una cubre una afirmación que la suite de
+tests es estructuralmente incapaz de hacer: un WebKit emulado no es un iPhone, y axe no ve una
+habitación a oscuras.
 
-**Time needed:** ~30 minutes, plus tag-writing.
-**You need:** an iPhone, an Android phone, one blank NFC tag, a tag-writing app
-(NFC Tools or similar), and a genuinely dark room.
+**Tiempo necesario:** ~30 minutos, más la grabación de la etiqueta.
+**Hace falta:** un iPhone, un Android, una etiqueta NFC virgen, una app para grabar etiquetas
+(NFC Tools o similar) y una habitación de verdad a oscuras.
 
-Record results in the table at the end and commit it.
+Anota los resultados en la tabla del final y haz commit.
 
 ---
 
-## Setup
+## Preparación
 
-### 1. Serve the hubs somewhere your phone can reach
+### 1. Dónde abrir el hub desde el móvil
 
-Nothing is deployed yet, so serve from this machine over your local network.
+Hay dos caminos, y **no son intercambiables**:
+
+| Camino | URL | Sirve para |
+|---|---|---|
+| **Sitio en producción** *(preferido)* | <https://diegojs97.github.io/nfc-hubs/demo/> | Comprobaciones **3 y 4** |
+| **Servidor local por LAN** *(alternativa)* | `http://<ip-de-esta-máquina>:8080/demo/` | Comprobaciones **1 y 2**, y todo si estás sin conexión |
+
+**Las comprobaciones 1 y 2 tienen que ir por LAN.** Necesitan datos de contacto de prueba
+inventados (paso 2 de abajo), y esos datos **no pueden llegar nunca al sitio en producción**:
+publicarlos exigiría hacer commit y push de datos inventados, que es exactamente lo que prohíbe el
+Principio VII de la constitución.
+
+Para el camino LAN:
 
 ```bash
 npm run build
-npm run serve            # binds all interfaces on port 8080
+npm run serve            # escucha en todas las interfaces, puerto 8080
 ```
 
-Find this machine's LAN address:
+La dirección de esta máquina:
 
 ```powershell
 (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notmatch 'Loopback' }).IPAddress
 ```
 
-Your phone then opens `http://<that-address>:8080/copas/`. Both devices must be on the same
-network, and Windows Firewall may prompt to allow Node — allow it for private networks.
+Los dos dispositivos tienen que estar en la misma red, y el Firewall de Windows puede pedir
+permiso para Node — dáselo para redes privadas.
 
-> ⚠ **This is HTTP, not HTTPS.** Good enough for checks 1–3. If check 1 fails over HTTP, retry
-> after deployment before concluding the vCard flow is broken — browsers restrict some
-> behaviour in non-secure contexts, and that would be a false negative.
+> ⚠ **La LAN es HTTP, no HTTPS.** Si la comprobación 1 falla por LAN, **no concluyas todavía que
+> el flujo de vCard está roto**: los navegadores restringen ciertos comportamientos fuera de un
+> contexto seguro, y eso sería un falso negativo. Anótalo como «falla en HTTP, sin confirmar en
+> HTTPS» y para. Reintentarlo en HTTPS es una decisión aparte, porque el sitio en producción no es
+> una opción con datos inventados — habría que servirlos por TLS de otra forma (certificado local
+> o túnel temporal) y eso conviene decidirlo a la vista del fallo, no de antemano.
 
-### 2. Temporary contact data (required for checks 1 and 2 only)
+El sitio en producción, en cambio, es HTTPS real y ya está desplegado, así que las comprobaciones
+3 y 4 se hacen contra él sin ninguna preparación.
 
-Every value is currently a placeholder, so **"Guardar contacto" shows the pending notice and
-generates nothing** — that is correct behaviour, not a bug. To exercise the vCard path you must
-temporarily confirm the four values.
+### 2. Datos de contacto temporales (solo para las comprobaciones 1 y 2)
 
-Edit `src/businesses/tapas/business.json` and replace the four placeholders. Use values that
-deliberately contain a comma and a semicolon, so the check also exercises escaping:
+**El hub `demo` no declara ninguna entrada `vcard`.** No es que esté pendiente: es que no existe,
+porque el módulo de guardar contacto es opcional y esta instancia no lo activa (FR-017). Además su
+teléfono sigue siendo el centinela. Para ejercitar el camino de la vCard hay que activar la
+entrada y confirmar el teléfono temporalmente.
 
-```json
-  "name": "Restaurante Ejemplo, Tapas SL",
-  "contact": {
-    "phone": "+34 600 000 000",
-    "address": "Calle Mayor, 1; 2º izq, Madrid",
-    "website": "https://example.com"
-  },
+Edita `src/businesses/demo/business.json` y haz **dos** cambios.
+
+**a) Confirma el teléfono y mete una coma y un punto y coma en la dirección**, para que la
+comprobación ejercite también el escapado:
+
+```diff
+   "contact": {
+-    "phone": "[PLACEHOLDER - replace]",
+-    "address": "Calle del Ejemplo 12, 28013 Madrid",
++    "phone": "+34 600 000 000",
++    "address": "Calle del Ejemplo, 12; 2º izq, 28013 Madrid",
+     "website": "https://example.com/"
+   },
 ```
 
-Then `npm run build` and restart `npm run serve`.
+`name` y `website` ya están confirmados, así que con esto los cuatro valores que exige FR-020
+quedan completos.
 
-> ⚠ **Revert immediately after checks 1 and 2.** Invented data must never be committed
-> (Constitution VII):
+**b) Añade la entrada `vcard` al final del array `entries`:**
+
+```diff
+     { "id": "review", "label": "Reseña Google", "type": "review" },
+-    { "id": "wifi", "label": "WiFi", "type": "wifi" }
++    { "id": "wifi", "label": "WiFi", "type": "wifi" },
++    { "id": "vcard", "label": "Guardar contacto", "type": "vcard" }
+```
+
+Una entrada `vcard` no lleva clave `url` — su destino no es un enlace, es una acción local del
+navegador. El esquema la rechaza si se la pones.
+
+Luego `npm run build` y reinicia `npm run serve`. El hub debe pasar de 6 entradas a 7, y la última
+debe ser [ES] «Guardar contacto» **sin** distintivo de pendiente.
+
+> ⚠ **Revierte en cuanto termines las comprobaciones 1 y 2.** Los datos inventados no pueden
+> llegar nunca a un commit (Principio VII), y menos aún a un push, que despliega automáticamente:
 >
 > ```bash
-> git checkout src/businesses/tapas/business.json && npm run build
-> npm run audit:placeholders    # must report 19 again
+> git checkout src/businesses/demo/business.json && npm run build
+> npm run audit:placeholders    # tiene que volver a decir 3
+> git status                    # business.json no puede aparecer modificado
 > ```
 
 ---
 
-## Check 1 — iOS Safari vCard import ⚠ THE CRITICAL ONE
+## Comprobación 1 — Importación de vCard en iOS Safari ⚠ LA CRÍTICA
 
-This is the project's one unresolved technical risk (research.md D5).
+Este es el único riesgo técnico sin resolver del proyecto (research.md D5).
 
-1. On the **iPhone**, open **Safari** (not Chrome, not an in-app browser) at
-   `http://<address>:8080/tapas/`
-2. Confirm the last entry reads [ES] **"Guardar contacto"** and is **not** showing a
-   "Pendiente" badge. If it still shows the badge, the setup step above did not take effect —
-   rebuild and reload.
-3. Tap it.
+1. En el **iPhone**, abre **Safari** (no Chrome, no un navegador dentro de otra app) en
+   `http://<dirección>:8080/demo/`
+2. Comprueba que la última entrada pone [ES] **«Guardar contacto»** y que **no** muestra el
+   distintivo de «Pendiente». Si sigue apareciendo, el paso de preparación no ha surtido efecto —
+   recompila y recarga.
+3. Tócala.
 
-**PASS** requires all of:
+**PASA** si se cumple todo:
 
-- iOS offers the file or opens Contacts directly — not a blank tab, not a silent no-op
-- the **"Add Contact"** screen appears, in Contacts
-- all four values are present and correct: business name, phone, address, website
-- the address reads as one field — **`Calle Mayor, 1; 2º izq, Madrid`**, not split across
-  fields or truncated at the comma
-- no stray backslashes appear in any field
+- iOS ofrece el fichero o abre Contactos directamente — ni una pestaña en blanco, ni un silencio
+- aparece la pantalla de **«Añadir contacto»**, en Contactos
+- los cuatro valores están presentes y correctos: nombre del negocio, teléfono, dirección y web
+- la dirección se lee como **un solo campo** — `Calle del Ejemplo, 12; 2º izq, 28013 Madrid` — sin
+  partirse entre campos ni cortarse en la coma
+- no aparece ninguna barra invertida suelta en ningún campo
 
-**Record on failure — this determines what happens next:**
+**Qué anotar si falla — de esto depende lo que pase después:**
 
-| Symptom | What it means |
+| Síntoma | Qué significa |
 |---|---|
-| Nothing happens at all | The Blob/`download` flow is not supported. **This is the D5 failure.** |
-| File downloads to Files but Contacts never opens | Partial support; may be acceptable, your call |
-| Contacts opens but fields are missing | Generation bug in `vcard.js`, not a platform issue |
-| Address split at the comma, or `\,` visible | RFC 2426 escaping bug in `vcard.js` |
+| No pasa absolutamente nada | El flujo Blob/`download` no está soportado. **Este es el fallo D5.** |
+| El fichero se descarga a Archivos pero Contactos no se abre | Soporte parcial; puede ser aceptable, es tu decisión |
+| Contactos se abre pero faltan campos | Bug de generación en `vcard.js`, no una limitación de plataforma |
+| La dirección se parte en la coma, o se ve `\,` | Bug de escapado RFC 2426 en `vcard.js` |
 
-Also record: **iOS version**, and whether you tapped from Safari directly or from a link
-opened inside another app.
+Anota también: **versión de iOS**, y si tocaste desde Safari directamente o desde un enlace abierto
+dentro de otra app. Y recuerda la advertencia de HTTP de la preparación antes de dar por bueno un
+fallo.
 
-> ⚠ **If this fails outright:** the fallback is a pre-built static `.vcf` served as an ordinary
-> link. That **contradicts FR-020**, which mandates in-browser generation. It requires a spec
-> amendment, not a silent substitution (`contracts/vcard.md`). Report the failure and stop —
-> do not let anyone quietly swap the implementation.
-
----
-
-## Check 2 — Android Chrome vCard import
-
-1. On the **Android phone**, open **Chrome** at `http://<address>:8080/tapas/`
-2. Tap [ES] **"Guardar contacto"**
-
-**PASS:** the file downloads and opening it offers to import into Contacts, with all four
-values correct and the address intact as a single field.
-
-Record the same details as check 1, plus the **Android version**.
-
-Android is historically the reliable case here. A failure would suggest a generation bug rather
-than a platform limitation — check whether iOS failed the same way.
+> ⚠ **Si falla del todo:** el plan B es un `.vcf` estático pre-generado servido como un enlace
+> normal. Eso **contradice FR-020**, que exige generación en el navegador. Requiere una enmienda
+> de la especificación, no una sustitución silenciosa (`contracts/vcard.md`). Reporta el fallo y
+> para — que nadie cambie la implementación por lo bajo.
 
 ---
 
-## Check 3 — Nocturnal contrast in a dark room
+## Comprobación 2 — Importación de vCard en Android Chrome
 
-Automated contrast checks evaluate *declared* colours. They cannot tell you whether the design
-is comfortable for a real eye, dark-adapted, at low screen brightness (research.md D8).
+1. En el **Android**, abre **Chrome** en `http://<dirección>:8080/demo/`
+2. Toca [ES] **«Guardar contacto»**
 
-1. Revert the test data first (see Setup 2) so the hub shows its real pending state
-2. Go into a genuinely dark room. Let your eyes adjust for a minute or two
-3. Set the phone to the brightness you would actually use at a bar table — **low**, not
-   auto-maximum
-4. Open `http://<address>:8080/copas/`
+**PASA:** el fichero se descarga y al abrirlo ofrece importarlo a Contactos, con los cuatro valores
+correctos y la dirección intacta como un solo campo.
 
-**PASS** requires all of:
+Anota los mismos detalles que en la comprobación 1, más la **versión de Android**.
 
-- every entry label is readable without squinting or raising brightness
-- the [ES] "Pendiente" badge is legible, not just a smudge
-- the screen is not uncomfortably bright — a nocturnal design that dazzles has failed even if
-  its contrast ratios are perfect
-- the focus outline is visible when tabbing (use a Bluetooth keyboard if you have one; skip if
-  not)
+Android es históricamente el caso fiable aquí. Un fallo sugeriría un bug de generación más que una
+limitación de plataforma — comprueba si iOS falló de la misma manera.
 
-Then open `/tapas/` alongside it and answer one question:
-
-- **Do these read as two different businesses, or one template in two colours?**
-  This is SC-005, and it is a human judgement no test can make.
-
-Record: readable yes/no, too bright yes/no, and your one-line answer on distinctness.
+**Al terminar esta comprobación, revierte los datos temporales** (ver preparación, paso 2) antes de
+seguir. Las comprobaciones 3 y 4 se hacen contra el hub con sus datos reales.
 
 ---
 
-## Check 4 — Real NFC tap, locked and unlocked
+## Comprobación 3 — Contraste nocturno en una habitación a oscuras
 
-Requires a reachable URL. If still on the LAN address, use a **throwaway tag** and mark it for
-rewriting — do **not** program venue tags until the production host is final
-(`contracts/hub-url.md`).
+Las comprobaciones automáticas de contraste evalúan colores *declarados*. No pueden decirte si el
+diseño es cómodo para un ojo real, adaptado a la oscuridad, con el brillo bajo (research.md D8).
 
-1. With a tag-writing app, write a **URL / URI record**:
-   `http://<address>:8080/copas/?m=1`
-   (after deployment: `https://<production-host>/copas/?m=1`)
-2. **Unlocked test:** phone unlocked, screen on, hold it to the tag
-3. **Locked test:** lock the phone, screen off, hold it to the tag
-4. Repeat both on the second phone
+1. Asegúrate de haber revertido los datos de prueba, para que el hub muestre su estado real
+2. Métete en una habitación de verdad a oscuras. Deja que los ojos se adapten un par de minutos
+3. Pon el móvil al brillo que usarías de verdad en la mesa de un bar — **bajo**, no al máximo
+   automático
+4. Abre <https://diegojs97.github.io/nfc-hubs/demo/>
 
-**PASS** requires, for each phone and each state:
+**PASA** si se cumple todo:
 
-- the phone reacts to the tag within about a second
-- the hub opens — either directly or via a single notification tap
-- no extra steps beyond the OS's normal flow (FR-010)
-- the page looks identical to opening it by typing the URL; the `?m=1` is **nowhere visible**
-  (SC-009)
+- todas las etiquetas de las entradas se leen sin forzar la vista ni subir el brillo
+- el distintivo [ES] «Pendiente» se lee, no es solo una mancha
+- la pantalla no resulta incómodamente brillante — un diseño nocturno que deslumbra ha fallado
+  aunque sus ratios de contraste sean perfectos
+- el contorno de foco se ve al tabular (usa un teclado Bluetooth si tienes; si no, sáltalo)
 
-**Record on failure:**
+Y responde a una pregunta, mirándolo como lo miraría un cliente:
 
-- which phone, and which state (locked / unlocked) failed
-- whether nothing happened, or a notification appeared but did not open
-- whether NFC is enabled in settings (Android can have it off; iPhones from XS onward read tags
-  in the background, older models need Control Centre)
+- **¿Esto se lee como la página propia de este local, o como una plantilla genérica recoloreada?**
 
-Older iPhones and some Android models do not scan while locked. That is a hardware limitation
-worth recording as a known constraint, not a defect to fix in this codebase.
+Eso es SC-005, y es un juicio humano que ningún test puede hacer.
+
+> **Nota sobre SC-005.** Su otra mitad — comparar dos hubs y reconocerlos como negocios distintos —
+> **no se puede comprobar hoy**: solo hay una instancia configurada. Cuando exista una segunda,
+> esta comprobación gana ese segundo paso. Hasta entonces, contesta solo a la pregunta de arriba y
+> no des la mitad comparativa por aprobada.
 
 ---
 
-## Results
+## Comprobación 4 — Tap NFC real, bloqueado y desbloqueado
 
-| # | Check | Result | Device / OS | Notes |
-|---|-------|--------|-------------|-------|
-| 1 | iOS Safari vCard | ⬜ pass / ⬜ fail | | |
-| 2 | Android Chrome vCard | ⬜ pass / ⬜ fail | | |
-| 3a | Nocturnal readable in the dark | ⬜ pass / ⬜ fail | | |
-| 3b | Two distinct identities (SC-005) | ⬜ pass / ⬜ fail | | |
-| 4a | NFC tap, unlocked | ⬜ pass / ⬜ fail | | |
-| 4b | NFC tap, locked | ⬜ pass / ⬜ fail | | |
+Ahora hay una URL pública real, así que esta comprobación ya no depende de la LAN.
 
-**Before finishing, confirm the repository is clean:**
+> ⚠ **Usa una etiqueta desechable y márcala para reescribir.** La URL de producción actual está
+> atada al nombre del repositorio de GitHub Pages. Todavía **no** es la dirección definitiva, así
+> que no grabes etiquetas de ningún local contra ella (`contracts/hub-url.md`).
+
+1. Con la app de grabación, escribe un registro **URL / URI**:
+   `https://diegojs97.github.io/nfc-hubs/demo/?m=1`
+   (sin conexión, la alternativa es `http://<dirección>:8080/demo/?m=1`)
+2. **Prueba desbloqueado:** móvil desbloqueado, pantalla encendida, acércalo a la etiqueta
+3. **Prueba bloqueado:** bloquea el móvil, pantalla apagada, acércalo a la etiqueta
+4. Repite las dos en el segundo móvil
+
+**PASA**, para cada móvil y cada estado, si:
+
+- el móvil reacciona a la etiqueta en aproximadamente un segundo
+- el hub se abre — directamente o con un único toque en la notificación
+- no hace falta ningún paso extra más allá del flujo normal del sistema operativo (FR-010)
+- la página se ve idéntica a abrirla escribiendo la URL, y el `?m=1` **no aparece por ningún
+  lado** (SC-009)
+- el hub aparece **con sus estilos**. Sin estilos significaría que la ruta base no coincide con la
+  ruta real de despliegue — aunque el paso de verificación del workflow debería haber impedido que
+  eso llegue a publicarse
+
+**Qué anotar si falla:**
+
+- qué móvil, y en qué estado (bloqueado / desbloqueado)
+- si no pasó nada, o si salió una notificación que no llegó a abrir
+- si NFC está activado en los ajustes (en Android puede estar apagado; los iPhone desde el XS leen
+  etiquetas en segundo plano, los modelos anteriores necesitan el Centro de control)
+
+Que un iPhone antiguo o algunos Android no lean con la pantalla bloqueada es una limitación de
+hardware que conviene anotar como restricción conocida, no un defecto que arreglar en este
+repositorio.
+
+---
+
+## Resultados
+
+| # | Comprobación | Resultado | Dispositivo / SO | Notas |
+|---|--------------|-----------|------------------|-------|
+| 1 | vCard en iOS Safari | ⬜ pasa / ⬜ falla | | |
+| 2 | vCard en Android Chrome | ⬜ pasa / ⬜ falla | | |
+| 3a | Nocturno legible a oscuras | ⬜ pasa / ⬜ falla | | |
+| 3b | Identidad propia, no plantilla (SC-005, mitad testable) | ⬜ pasa / ⬜ falla | | |
+| 4a | Tap NFC, desbloqueado | ⬜ pasa / ⬜ falla | | |
+| 4b | Tap NFC, bloqueado | ⬜ pasa / ⬜ falla | | |
+
+**Antes de terminar, confirma que el repositorio está limpio:**
 
 ```bash
-npm run audit:placeholders    # must report 19 values
-git status                    # no modified business.json
+npm run audit:placeholders    # tiene que decir 3 valores
+git status                    # ningún business.json modificado
+npm test                      # 75 pasan, 5 saltadas
 ```
 
-Then fill in this table, commit it, and tick T039 in `tasks.md`.
+Ese último comando importa más que antes: la suite es la condición de publicación del workflow de
+despliegue, así que un árbol sucio con datos de prueba se publicaría solo en el siguiente push.
 
-Check 1 is the one that can change the plan. Everything else either passes or produces a
-documented constraint.
+Después rellena la tabla, haz commit y marca T039 en `tasks.md`.
+
+La comprobación 1 es la única que puede cambiar el plan. Las demás o pasan o producen una
+restricción documentada.
