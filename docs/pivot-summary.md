@@ -279,9 +279,12 @@ Two things the rewrite pass established rather than merely recorded:
 - **The temporary-vcard swap was executed and reverted**, not just written down: it builds to 7
   entries with the entry confirmed, ships `_engine/vcard.js`, and `git checkout` restores the
   three placeholders and a clean tree.
-- **Document language is now a written convention** (`CLAUDE.md` → Conventions). `CLAUDE.md` and
-  the constitution stay English — an agent loads them every session. The four reader-facing docs
-  are Spanish. `[ES]` customer-facing strings are never translated in either.
+- **Document language is now a written convention** (`CLAUDE.md` → Conventions). Every tracked doc
+  is English-primary and permanently maintained that way; `docs/t039-device-checks.md` is the one
+  exception and stays Spanish, because it is a checklist followed with hardware in hand rather than
+  reference reading. Spanish reading copies of anything else are generated ad hoc outside the repo
+  — twin `*.es.md` files are prohibited, since two tracked copies drift and the stale one still
+  reads as authoritative. `[ES]` customer-facing strings are never translated in any of them.
 
 ---
 
