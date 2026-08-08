@@ -1,277 +1,264 @@
-# NFC Hubs — Visión general del proyecto
+# NFC Hubs — Project Overview
 
-**Estado:** Fase 1 construida, verificada y desplegada. En vivo en
+**Status:** Phase 1 built, verified, and deployed. Live at
 <https://diegojs97.github.io/nfc-hubs/demo/>.
-**Última actualización:** 2026-08-08
+**Last updated:** 2026-08-08
 
 ---
 
-## Qué es esto
+## What this is
 
-Cada mesa de un local lleva una pequeña etiqueta NFC. El cliente acerca el móvil y se abre una
-página al instante — sin app, sin cámara, sin teclear — con una lista corta de lo que ese cliente
-va a querer con más probabilidad: la carta, un enlace de reservas, cómo llegar, la cuenta de
-Instagram, dejar una reseña, el nombre de la red WiFi.
+Every table in a venue carries a small NFC tag. A customer holds their phone near it and a page
+opens immediately — no app, no camera, no typing — showing a short list of the things that customer
+is most likely to want: the menu, a reservation link, how to get there, the Instagram account, a
+review link, the WiFi network name.
 
-La comparación obvia es el código QR, así que conviene ser preciso sobre la diferencia.
+The obvious comparison is a QR code, so let's be precise about the difference.
 
-**Un QR podría servir exactamente la misma página.** Aquí no hay nada técnicamente imposible con
-QR, y afirmar lo contrario sería deshonesto. Las diferencias están en el coste de la interacción
-y en a qué apunta la etiqueta:
+**A QR code could serve exactly the same page.** Nothing here is technically impossible with QR,
+and claiming otherwise would be dishonest. The differences are in interaction cost and in what the
+tag is pointing at:
 
-- **El tap es más corto que el escaneo.** Un QR necesita la cámara abierta, el código encuadrado,
-  luz suficiente, una distancia razonable, y luego un toque en la notificación. Una etiqueta NFC
-  necesita acercar el móvil a la mesa. En un bar de copas a oscuras, esa diferencia es mayor de
-  lo que parece.
-- **Una etiqueta, muchos destinos.** El instinto con un QR es apuntarlo directamente a la carta,
-  porque una pegatina solo puede hacer una cosa. Luego el local quiere un enlace de reservas, y
-  aparece un segundo código, y la mesa acumula pegatinas. Una etiqueta NFC tiene la misma
-  limitación de un único destino — pero aquí ese destino es una *página hub*, así que una sola
-  etiqueta lo cubre todo y la lista puede cambiar sin tocar la etiqueta.
-- **La mesa es identificable.** Cada etiqueta codifica su propio número de mesa en la URL. Hoy
-  ese número se ignora deliberadamente. Existe para que una analítica posterior pueda atribuir
-  actividad a una mesa concreta sin que nadie reprograme ni una sola etiqueta.
+- **The tap is shorter than the scan.** A QR code needs the camera open, the code in frame, in
+  adequate light, at a workable distance, then a tap on a notification. An NFC tag needs the phone
+  brought near the table. In a dark cocktail bar, that gap is wider than it sounds.
+- **One tag, many destinations.** The instinct with a QR code is to point it straight at the menu,
+  because a sticker can only do one thing. Then the venue wants a reservation link, so a second
+  code appears, and the table accumulates stickers. An NFC tag has the same one-destination
+  limitation — but here that single destination is a *hub page*, so one tag covers everything and
+  the list can change without touching the tag.
+- **The table is identifiable.** Each tag encodes its own table number in the URL. Today that
+  number is deliberately ignored. It exists so that later analytics can attribute activity to a
+  specific table without anyone re-programming a single tag.
 
-Ese último punto es la apuesta arquitectónica: **la etiqueta es un objeto físico y permanente, y
-la página a la que apunta no lo es.** Todo lo caro de cambiar se decide una vez, al principio;
-todo lo demás se queda blando.
+That last point is the architectural bet: **the tag is a permanent, physical object, and the page
+it points to is not.** Everything expensive to change is decided once, up front; everything else
+stays soft.
 
 ---
 
-## Un arquetipo, configurado por negocio
+## One archetype, configured per business
 
-El proyecto empezó con dos arquetipos con nombre propio — un bar de copas y un restaurante de
-tapas — cada uno con su lista de entradas fijada en la especificación. Resultaron ser
-estructuralmente casi idénticos, y mandarlos por nombre en la especificación es justo lo que
-convertía «dar de alta un local» en un cambio de especificación en vez de en una carpeta.
+The project started with two named archetypes — a cocktail bar and a tapas restaurant — each with
+its entry list fixed in the specification. They turned out to be structurally near-identical, and
+mandating them by name in the spec is exactly what made "onboard a venue" a spec change rather than
+a folder.
 
-Hoy hay **un solo arquetipo genérico**. El motor soporta un catálogo de tipos de entrada, y cada
-local elige cuáles usa y en qué orden:
+Today there is **one generic archetype**. The engine supports a catalog of entry types, and each
+venue picks which ones it uses and in what order:
 
-| Tipo | Qué hace |
+| Type | What it does |
 |---|---|
-| **enlace** | Va a un destino externo: la carta, reservas, Instagram, lo que sea |
-| **reseña** | Abre Google directamente en el formulario de escribir reseña de ese local |
-| **cómo llegar** | Abre la ficha del local en Google Maps |
-| **llamar** | Abre el marcador del móvil con el teléfono del local |
-| **WiFi** | Muestra el nombre de la red como texto. Nunca conecta |
-| **guardar contacto** | Genera una tarjeta de contacto en el propio móvil |
+| **link** | Goes to an external destination: the menu, reservations, Instagram, whatever |
+| **review** | Opens Google directly on that venue's write-review form |
+| **how to get there** | Opens the venue's place page on Google Maps |
+| **call** | Opens the phone's dialler with the venue's number |
+| **WiFi** | Shows the network name as text. Never connects |
+| **save contact** | Generates a contact card on the phone itself |
 
-Añadir un **tipo** nuevo al catálogo es una decisión de producto y pasa por la especificación.
-Elegir **qué tipos usa un local y en qué orden** es editar un fichero de datos, y no requiere
-permiso de nadie.
+Adding a new **type** to the catalog is a product decision and goes through the specification.
+Choosing **which types a venue uses and in what order** is editing a data file, and needs nobody's
+permission.
 
-Eso cambia una cosa importante: un local que no se parece a ningún patrón previo ya no está
-bloqueado esperando a que alguien especifique su arquetipo. Se le configura. El único freno que
-queda es el correcto — no se pueden **inventar valores**.
+That changes something important: a venue that resembles no previous pattern is no longer blocked
+waiting for someone to specify its archetype. You configure it. The only brake left is the right
+one — you cannot **invent values**.
 
-### El módulo de guardar contacto
+### The save-contact module
 
-«Guardar contacto» es el mejor ejemplo de la diferencia. Antes era una propiedad de una categoría
-de negocio: el restaurante lo tenía y el bar no, por especificación. Ahora es un módulo opcional:
-un hub lo tiene exactamente cuando sus datos declaran esa entrada, y un hub que no la declara no
-descarga ni un byte de ese código.
+"Save contact" is the clearest illustration of the difference. It used to be a property of a
+business category: the restaurant had it and the bar did not, by specification. Now it is an
+optional module: a hub has it exactly when its data declares that entry, and a hub that does not
+declare it downloads not one byte of that code.
 
-Sigue teniendo sentido que un restaurante que hace catering viva en la agenda de un cliente y que
-un bar de copas no. La diferencia es que ahora eso lo decide quien configura el local, no la
-especificación.
+It still makes sense that a restaurant doing catering belongs in a customer's address book and a
+cocktail bar does not. The difference is that this is now decided by whoever configures the venue,
+not by the specification.
 
-### El local de demostración
+### The demonstration venue
 
-Hay una única instancia configurada: [ES] «Taberna Vela y Sal», un local **ficticio** creado para
-poder enseñar el producto. No es un cliente, y sus datos son inventados a propósito.
+There is a single instance configured: [ES] "Taberna Vela y Sal", a **fictional** venue built so
+the product can be shown. It is not a client, and its data is invented on purpose.
 
-Dos de sus valores siguen deliberadamente sin confirmar: el identificador de Google del local y
-el teléfono. Podrían haberse rellenado con datos reales de algún sitio para que todos los botones
-funcionaran en la demo, y se hizo brevemente — fue un mal intercambio. «Reseña Google» habría
-dejado una reseña en un negocio real y ajeno, y «Cómo llegar» habría llevado al cliente potencial
-a otra ciudad. España tampoco reserva ningún rango de números ficticios, así que cualquier `+34`
-verosímil puede ser de una persona real.
+Two of its values deliberately remain unconfirmed: the venue's Google place ID and its phone
+number. They could have been filled with real data from somewhere so that every button worked in
+the demo, and briefly they were — it was a bad trade. "Reseña Google" would have filed a review
+against a real, unrelated business, and "Cómo llegar" would have navigated a prospect to another
+city. Spain also reserves no fictional number range, so any plausible `+34` may belong to a real
+person.
 
-El resultado es una demo con cuatro entradas funcionando y dos pendientes. Eso es honesto, y
-además convierte el estado «pendiente» en algo que el cliente potencial ve funcionando en vez de
-tener que creérselo.
-
----
-
-## Cómo está construido
-
-**Un motor, muchos negocios.** Un único generador de sitios (Eleventy) produce todos los hubs.
-Toda la lógica compartida — maquetación, estilos, comportamiento, accesibilidad — vive en un solo
-sitio. Añadir un local es añadir una carpeta, no copiar un proyecto.
-
-**Cada negocio es un fichero de datos.** Todo lo específico de un local — su nombre, sus enlaces,
-su teléfono, el nombre de su WiFi — vive en un JSON pequeño y versionado. Poner valores reales es
-editar ese fichero. Ningún desarrollador toca marcado, estilos ni código para colocar el enlace
-real de una carta. Esa restricción la impone la propia compilación, no la buena voluntad.
-
-**Sin backend en la Fase 1.** La salida es HTML, CSS y unos pocos kilobytes de JavaScript. No hay
-servidor, ni base de datos, ni login, ni nada que mantener o que puedan reventar. El hub pesa
-**10,1 KB** frente a un techo autoimpuesto de 100 KB — algo que se nota en la conexión saturada de
-un local lleno.
-
-**Desplegado en GitHub Pages.** El sitio se publica solo en cada cambio: se compila, se ejecuta la
-suite de pruebas completa como condición de publicación, y solo si todo pasa se despliega.
-Cloudflare Pages sigue siendo la candidata para la Fase 2, porque el redirector de analítica
-necesita ejecutar código en servidor y GitHub Pages no puede. Esa es una decisión de la Fase 2,
-no de ahora — pero es la razón de que la dirección web deba quedar fijada **antes** de grabar
-ninguna etiqueta: cambiarla después obliga a reprogramar todas a mano.
+The result is a demo with four working entries and two pending. That is honest, and it turns the
+pending state into something a prospect sees working rather than has to take on trust.
 
 ---
 
-## Principios de diseño
+## How it's built
 
-Estas son las decisiones que separan esto de una plantilla, dichas en llano.
+**One engine, many businesses.** A single site generator (Eleventy) produces every hub. All shared
+logic — layout, styling, behaviour, accessibility — lives in one place. Adding a venue means adding
+a folder, not copying a codebase.
 
-**Los datos sin confirmar están marcados, y el sistema lo sabe.**
-Todo valor que el dueño aún no ha facilitado contiene una cadena marcadora concreta. El sistema
-lee ese marcador: una entrada cuyo destino sigue sin confirmar se muestra normalmente en su
-posición, pero al tocarla aparece un aviso breve de «pendiente de confirmar» en vez de navegar a
-ninguna parte. A un cliente nunca se le manda a un enlace muerto, a una página de relleno ni al
-negocio de otro. Nunca se inventa nada para que una página parezca terminada.
+**Each business is a data file.** Everything specific to a venue — its name, its links, its phone
+number, its WiFi network name — lives in one small, version-controlled JSON file. Going live with
+real values means editing that file. No developer touches markup, styling, or code to put a real
+menu link in place. That constraint is enforced by the build itself, not by good intentions.
 
-**Los errores de datos paran la compilación en vez de publicarse.**
-Un campo que falta, un valor vacío o un marcador sutilmente mal escrito no se convierten en
-silencio en un enlace roto en una página en vivo: hacen fallar la compilación, nombrando el campo
-exacto. El fallo que esto previene es concreto y real: una errata que hiciera creer al sistema que
-un valor está confirmado mandaría a los clientes a una dirección inexistente.
+**No backend in Phase 1.** The output is HTML, CSS, and a few kilobytes of JavaScript. There is no
+server, no database, no login, nothing to maintain or breach. The hub weighs **10.1 KB** against a
+self-imposed 100 KB ceiling — which is noticeable on the congested connection of a busy venue.
 
-**La tarjeta de contacto es todo o nada.**
-«Guardar contacto» genera una tarjeta solo cuando el nombre, el teléfono, la dirección y la web
-están *todos* confirmados. Si falta uno, no genera nada y explica por qué. Un contacto a medias
-guardado en el móvil de alguien es peor que ningún contacto: se lo queda, se fía de él, y está
-mal. Además le cuesta mucho más deshacerlo que a un toque que educadamente no hizo nada.
-
-**El WiFi se muestra, nunca se conecta.**
-El hub enseña el *nombre* de la red como texto plano y nada más — no es un botón, no es un
-enlace, y no puede iniciar una conexión. No hay ninguna contraseña guardada en ningún sitio del
-sistema. Donde un local quiera conexión al tocar, eso lo resuelve el registro WiFi de la propia
-etiqueta, escrito al programarla. Las credenciales no tocan la web.
-
-**Sin seguimiento, sin cookies, sin datos guardados.**
-La Fase 1 no recoge nada. Ni analítica, ni cookies, ni almacenamiento en el navegador, ni scripts
-de terceros, ni fuentes externas. El tap de un cliente no se le reporta a nadie, incluidos
-nosotros. Lo verifica una prueba automática que falla si la página contacta con cualquier
-dirección externa. Es también parte de por qué las páginas son tan pequeñas.
-
-Y hay un límite escrito para más adelante, no solo para hoy: la constitución del proyecto acota
-qué podrá llegar a ser la medición — recuento de audiencia agregado y anónimo de un solo sitio,
-sin identificadores en el navegador y sin seguimiento entre sitios. Datos personales y cruce de
-datos entre clientes quedan fuera de alcance **en todas las fases**, no solo en esta.
-
-**La accesibilidad es un suelo, no un acabado.**
-El hub cumple WCAG 2.2 AA — verificado automáticamente en cada compilación. Los objetivos táctiles
-cumplen el tamaño mínimo, el contraste se comprueba, y el estado «pendiente» se comunica con texto
-y no solo con color, así que sobrevive al daltonismo y a la escala de grises. El diseño nocturno
-no tiene exención: cumple la misma vara que cumpliría uno diurno.
-
-**Los identificadores son permanentes aunque el resto sea blando.**
-Un local puede añadir, quitar y reordenar sus entradas libremente. Lo que no puede es **renombrar**
-una: el identificador de cada entrada está destinado a ser su ruta de analítica en la Fase 2, y
-renombrarlo hoy es gratis y rompe la medición en silencio más adelante, cuando las etiquetas ya
-están en las mesas. Es la misma lógica que la dirección web — lo caro de cambiar se decide una
-vez.
+**Deployed on GitHub Pages.** The site publishes itself on every change: it builds, runs the full
+test suite as a condition of publication, and only deploys if everything passes. Cloudflare Pages
+remains the candidate for Phase 2, because the analytics redirector needs to run server-side code
+and GitHub Pages cannot. That is a Phase 2 decision, not this one — but it is the reason the web
+address must be settled **before** any tag is written: changing it afterwards means re-programming
+every tag by hand.
 
 ---
 
-## En qué punto está el proyecto
+## Design principles
 
-**Construido, verificado y en vivo.**
-El proyecto define 80 comprobaciones automáticas: **75 pasan, 5 están saltadas
-deliberadamente**, ninguna falla. La mayoría corre en un navegador real contra un iPhone emulado
-(motor de Safari) y un Android emulado (motor de Chrome) — los dos únicos entornos que importan,
-porque todo el tráfico real llega desde un móvil — y el resto son comprobaciones del contrato de
-datos que verifican que la compilación rechaza datos de local mal formados. La cobertura incluye
-el orden de las entradas, el comportamiento de pendiente, la tarjeta de contacto en sus dos
-estados, el WiFi inerte, la accesibilidad, el peso de la página, los tiempos de carga y la ruta
-base del sitio desplegado. Las 5 saltadas miden comportamiento de compilación o con red
-estrangulada que solo un motor de navegador puede reportar; están registradas como hueco de
-cobertura conocido en vez de omitidas calladamente.
+These are the choices that separate this from a template, described plainly.
 
-Medido, no estimado: 10,1 KB de peso frente a un presupuesto de 100 KB; contenido esencial visible
-en 286 ms en una conexión 4G típica y en 577 ms en una deliberadamente degradada, frente a
-objetivos de 1,5 y 3 segundos.
+**Unconfirmed data is marked, and the system knows it.**
+Every value the owner hasn't yet supplied holds a specific marker string. The system reads that
+marker: an entry whose destination is still unconfirmed renders normally in its place, but tapping
+it shows a short "pending confirmation" notice instead of navigating anywhere. A customer is never
+sent to a dead link, a placeholder page, or someone else's business. Nothing is ever invented to
+make a page look finished.
 
-La suite es además la condición de publicación: no se despliega nada que no la pase entera, en un
-Ubuntu limpio y no solo en la máquina de desarrollo.
+**Data mistakes stop the build instead of shipping.**
+A missing field, an empty value, or a subtly wrong marker doesn't quietly become a broken link on a
+live page — it fails the build, naming the exact field at fault. The failure this prevents is
+specific and real: a typo that made the system think a value was confirmed would send customers to
+a nonexistent address.
 
-**Aplazado por diseño a la Fase 2.**
-La analítica de taps. Hoy no hay forma de saber cuánta gente ha usado un hub, ni desde qué mesa.
-Es una decisión consciente de secuencia, no un olvido: la capa de medición necesita un componente
-de servidor, y la Fase 1 se mantuvo estática para poder publicarse y validarse sin él. El terreno
-está preparado — los números de mesa ya viajan en las URLs de las etiquetas, y todos los destinos
-están centralizados para poder redirigirse a través de un punto de medición sin reescribir las
-páginas.
+**The contact card is all-or-nothing.**
+"Save contact" produces a card only when the name, phone, address, and website are *all* confirmed.
+If any one is missing, it generates nothing and explains why. A half-complete contact saved into
+someone's phone is worse than no contact: they keep it, they trust it, and it's wrong. It is also
+much harder for them to undo than a tap that politely did nothing.
 
-**Abierto antes de un cliente real.**
+**WiFi is displayed, never connected.**
+The hub shows the network *name* as plain text and nothing more — it is not a button, not a link,
+and cannot initiate a connection. No password is stored anywhere in the system. Where a venue wants
+tap-to-connect, that is handled by the tag's own built-in WiFi record, written when the tag is
+programmed. Credentials never touch the website.
 
-1. **Un local de verdad.** Lo que hay configurado es una demo ficticia. Contactar con un local,
-   recoger sus datos y configurarlo es la siguiente tarea real, y es de negocio, no técnica.
+**No tracking, no cookies, no stored data.**
+Phase 1 collects nothing. No analytics, no cookies, no browser storage, no third-party scripts, no
+external fonts. A customer's tap is not reported to anyone, including us. This is verified by an
+automated test that fails if the page contacts any outside address at all. It is also part of why
+the pages are so small.
 
-2. **La dirección web definitiva.** La actual es una URL de GitHub Pages atada al nombre del
-   repositorio. Sirve perfectamente para enseñar el producto, pero como cada etiqueta codifica
-   físicamente la dirección completa, esto tiene que quedar cerrado *antes* de grabar ninguna
-   etiqueta de un local — cambiarlo después significa reprogramarlas todas a mano.
+And there is a limit written down for later, not only for today: the project's constitution bounds
+what measurement may ever become — anonymous, aggregate, single-site audience measurement, with no
+client-side identifiers and no cross-site tracking. Personal data and cross-client data sharing are
+out of scope **in all phases**, not just this one.
 
-3. **Verificación en dispositivo real de la tarjeta de contacto — el único riesgo técnico sin
-   resolver.**
-   «Guardar contacto» genera su tarjeta enteramente en el móvil. Funciona en las pruebas
-   automáticas, pero las pruebas automáticas ejecutan un *motor* de navegador, no un iPhone. Si
-   iOS Safari abre el importador de contactos al recibir un fichero generado es un comportamiento
-   conocido por frágil que ninguna cantidad de automatización puede confirmar. Hay que comprobarlo
-   en hardware real.
+**Accessibility is a floor, not a finish.**
+The hub meets WCAG 2.2 AA — verified automatically on every build. Tap targets meet the minimum
+size, contrast is checked, and the "pending" state is communicated with text rather than colour
+alone, so it survives colour-blindness and greyscale. The nocturnal design gets no exemption: it
+meets the same bar a daylight one would.
 
-   Si falla, existe un plan B — servir un fichero de contacto pre-generado como un enlace normal —
-   pero funciona de forma distinta a lo que la especificación exige hoy, así que se trataría como
-   un cambio documentado y no como una sustitución silenciosa. Es el punto con más probabilidad de
-   requerir rehacer trabajo, y está deliberadamente puesto encima de la mesa ahora en vez de
-   descubrirse el día del lanzamiento.
-
-   Con un matiz honesto añadido por el cambio de arquetipo: como ningún local declara hoy la
-   entrada de guardar contacto, la prueba en dispositivo requiere activarla temporalmente con
-   datos de prueba. El procedimiento lo describe [`t039-device-checks.md`](./t039-device-checks.md).
-
-Junto a eso queda una lista corta de comprobaciones en dispositivo: la tarjeta de contacto en
-Android, leer el diseño nocturno en una habitación de verdad a oscuras (el chequeo automático de
-contraste solo evalúa colores declarados, no percepción), y confirmar que una etiqueta abre bien
-con el móvil bloqueado y desbloqueado.
+**Identifiers are permanent even though everything else is soft.**
+A venue can add, remove, and reorder its entries freely. What it cannot do is **rename** one: each
+entry's identifier is destined to become its analytics route in Phase 2, and renaming it today is
+free and silently breaks measurement later, once the tags are on the tables. It is the same logic
+as the web address — what is expensive to change is decided once.
 
 ---
 
-## Hoja de ruta
+## Where the project stands
 
-**Fase 1 — hubs estáticos.** *(construida y desplegada; pendiente de un cliente real y de la
-verificación en dispositivo)*
-Un arquetipo configurable sobre un motor compartido, servible como ficheros planos por HTTPS sin
-backend. Termina cuando un local real tenga sus datos puestos, sus etiquetas escritas y sus
-páginas en vivo.
+**Built, verified, and live.**
+The project defines 80 automated checks: **75 pass, 5 are deliberately skipped**, none fail. Most
+run in a real browser against an emulated iPhone (Safari engine) and an emulated Android (Chrome
+engine) — the only two environments that matter, since all real traffic arrives from a phone — and
+the rest are data-contract checks that verify the build rejects malformed venue data. Coverage
+includes entry order, the pending behaviour, the contact card in both its states, the inert WiFi
+display, accessibility, page weight, load timing, and the deployed site's base path. The 5 skipped
+checks measure build-level or network-throttled behaviour that only one browser engine can report;
+they are recorded as a known coverage gap rather than quietly omitted.
 
-**Fase 2 — medición.** *(requiere aprobación explícita antes de empezar)*
-Un redirector en servidor que registra un tap y reenvía al destino real, convirtiendo los números
-de mesa que ya viajan en cada etiqueta en información utilizable: qué local, qué mesa, qué
-entrada, a qué hora. La Fase 1 se construyó específicamente para que esto sea una adición y no una
-reconstrucción — misma dirección, mismas etiquetas, sin reprogramar nada. No se ha empezado y no
-se empezará hasta que se apruebe explícitamente. Sus límites ya están escritos en la constitución:
-agregado, anónimo, de un solo sitio.
+Measured, not estimated: 10.1 KB of weight against a 100 KB budget; essential content visible in
+286 ms on a typical 4G connection and 577 ms on a deliberately degraded one, against targets of 1.5
+and 3 seconds.
 
-**Fase 3 — más locales.** *(potencial)*
-El motor ya separa la maquinaria compartida del contenido de cada local, así que un local nuevo es
-una carpeta de datos, no un proyecto nuevo. El freno que existía antes — «un local materialmente
-distinto necesita que le especifiquen su arquetipo primero» — ha desaparecido con el cambio a un
-arquetipo genérico. Lo que queda es un freno mejor: un local nuevo se configura eligiendo del
-catálogo, y cualquier valor que su dueño no haya confirmado se queda marcado como pendiente hasta
-que lo confirme.
+The suite is also the condition of publication: nothing deploys that does not pass it in full, on a
+clean Ubuntu and not only on the development machine.
+
+**Deferred by design to Phase 2.**
+Tap analytics. There is currently no way to know how many people used a hub, or from which table.
+This is a conscious sequencing decision, not an oversight: the measurement layer needs a server
+component, and Phase 1 was kept static so it could ship and be validated without one. The
+groundwork is in place — table numbers already travel in the tag URLs, and every destination is
+centralised so it can be rerouted through a measurement endpoint without rewriting the pages.
+
+**Open before a real client.**
+
+1. **An actual venue.** What is configured is a fictional demo. Contacting a venue, collecting its
+   data, and configuring it is the next real task, and it is a business one, not a technical one.
+
+2. **The definitive web address.** The current one is a GitHub Pages URL tied to the repository
+   name. It serves perfectly well for showing the product, but because each tag physically encodes
+   the full address, this must be settled *before* writing any venue's tags — changing it afterwards
+   means re-programming them all by hand.
+
+3. **Real-device verification of the contact card — the one unresolved technical risk.**
+   "Save contact" generates its card entirely on the phone. It works in automated testing, but
+   automated testing runs a browser *engine*, not an iPhone. Whether iOS Safari opens the contacts
+   importer when handed a generated file is a known-fragile behaviour that no amount of automation
+   can confirm. It must be checked on real hardware.
+
+   If it fails, there is a fallback — serving a pre-built contact file as an ordinary link — but it
+   works differently from what the specification currently requires, so it would be handled as a
+   documented change rather than a silent substitution. It is the item most likely to require
+   rework, and it is deliberately on the table now rather than discovered on launch day.
+
+   With one honest wrinkle added by the archetype change: since no venue currently declares the
+   save-contact entry, the device test requires temporarily enabling it with test data. The
+   procedure is described in [`t039-device-checks.md`](./t039-device-checks.md).
+
+Alongside that, a short list of device checks remains: the contact card on Android, reading the
+nocturnal design in an actually dark room (automated contrast checking only evaluates declared
+colours, not perception), and confirming a tag opens correctly with the phone both locked and
+unlocked.
 
 ---
 
-## Resumen
+## Roadmap
 
-La Fase 1 está funcionalmente completa, verificada de forma independiente contra su propia
-especificación, y desplegada. El riesgo de ingeniería es bajo y está concentrado en un único sitio
-identificado: el comportamiento de la tarjeta de contacto en iPhones reales. El trabajo que queda
-antes de un lanzamiento real es sobre todo no-técnico: conseguir un local, recoger su información,
-y cerrar una dirección web que a partir de entonces es permanente.
+**Phase 1 — static hubs.** *(built and deployed; pending a real client and device verification)*
+A configurable archetype on a shared engine, servable as plain files over HTTPS with no backend.
+Ends when a real venue has its data in place, its tags written, and its pages live.
 
-La decisión de diseño central es que todo lo físico y caro de cambiar se decide una vez, y todo lo
-demás se queda editable. Eso es lo que hace que una segunda fase sea una adición y no una
-reconstrucción, y que un segundo local sea una carpeta y no un proyecto.
+**Phase 2 — measurement.** *(requires explicit sign-off before work starts)*
+A server-side redirector that records a tap and forwards to the real destination, turning the table
+numbers already travelling in every tag into usable information: which venue, which table, which
+entry, at what time. Phase 1 was built specifically so this is an addition rather than a rebuild —
+same address, same tags, nothing re-programmed. It has not been started and will not be until it is
+explicitly approved. Its limits are already written into the constitution: aggregate, anonymous,
+single-site.
+
+**Phase 3 — more venues.** *(potential)*
+The engine already separates shared machinery from per-venue content, so a new venue is a data
+folder, not a new project. The brake that used to exist — "a materially different venue needs its
+archetype specified first" — is gone with the move to a generic archetype. What remains is a better
+brake: a new venue is configured by picking from the catalog, and any value its owner has not
+confirmed stays marked as pending until they do.
+
+---
+
+## Summary
+
+Phase 1 is functionally complete, independently verified against its own specification, and
+deployed. The engineering risk is low and concentrated in one identified place: the contact card's
+behaviour on real iPhones. The work remaining before a real launch is mostly non-technical: getting
+a venue, collecting its information, and settling a web address that becomes permanent from then
+on.
+
+The central design choice is that everything physical and expensive to change is decided once, and
+everything else stays editable. That is what makes a second phase an addition rather than a
+rebuild, and a second venue a folder rather than a project.
