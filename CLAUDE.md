@@ -162,13 +162,19 @@ data and cross-client data sharing are permanently out of scope, in every phase.
 
 ## Conventions
 
-- **Document language.** `CLAUDE.md` and `.specify/memory/constitution.md` are **English only**
-  — they are technical/structural content an agent loads and operates on. Reader-facing docs
-  (`README.md`, `docs/*.md`) are written in **Spanish**, because the repo owner is their primary
-  reader. Customer-facing strings (entry labels, business names) are always Spanish, tagged
-  `[ES]` in the spec, and are **never translated**. If a Spanish doc would be unreasonably
-  expensive to produce directly, write it in English and add a twin `*.es.md` marked as a
-  translation — but prefer writing it in Spanish once.
+- **Document language.** Every tracked document is **English**, with exactly one permanent
+  exception: `docs/t039-device-checks.md` stays in **Spanish**. It is an operational checklist
+  followed step by step with hardware in hand, not reference reading, so its language is part of
+  how it is used. Everything else — `CLAUDE.md`, `.specify/memory/constitution.md`, `README.md`,
+  the rest of `docs/` — is English-primary and permanently maintained that way.
+- **No twin translation files.** Do not create `*.es.md` twins, and do not maintain a second
+  language copy of any tracked doc. When Diego wants a Spanish reading copy, it is generated ad
+  hoc in chat, outside the repo. Two tracked copies drift, and the stale one still reads as
+  authoritative.
+- **`[ES]` strings are exempt from all of the above.** Customer-facing values — entry labels,
+  business names, the pending notice — are Spanish because the customer is Spanish. Quote them
+  verbatim and **never translate them**, in any document or test, whatever language surrounds
+  them.
 
 ## Release gates
 
