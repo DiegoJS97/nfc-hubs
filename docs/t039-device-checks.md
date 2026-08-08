@@ -21,7 +21,7 @@ número:
 | Prioridad | # | Comprobación | Estado (2026-08-08) |
 |---|---|---|---|
 | 1.ª — **la crítica** | 1 | vCard en iOS Safari | ✅ **PASA.** Riesgo D5 cerrado |
-| 2.ª | 4 | Tap NFC, bloqueado y desbloqueado | ✅ Pasa en Android, con restricción de plataforma confirmada en bloqueo. Falta el iPhone |
+| 2.ª | 4 | Tap NFC, bloqueado y desbloqueado | ✅ **Cerrada.** Pasa en ambos, con umbrales de plataforma distintos y documentados |
 | 3.ª | 2 | vCard en Android Chrome | ✅ **PASA** |
 | 4.ª | 3 | Contraste nocturno a oscuras | ⬜ Abierta, y de valor limitado hasta que haya un cliente real |
 
@@ -209,11 +209,31 @@ mesa. FR-010 exige que el hub se abra «sin pasos extra más allá del flujo nor
 operativo» — y desbloquear el móvil *es* el flujo normal de ese sistema operativo, así que el
 requisito se cumple.
 
-**Falta el iPhone.** Los iPhone desde el XS leen etiquetas en segundo plano con la pantalla
-bloqueada, así que es plausible que se comporte distinto al Android — y eso es exactamente lo que
-hay que confirmar antes de dar la comprobación por cerrada del todo. Es además la parte con más
-valor comercial: si el iPhone sí lee bloqueado, la restricción es de un solo ecosistema y no del
-producto.
+> **RESULTADO en iPhone (2026-08-08): pasa con la pantalla de bloqueo encendida.** iOS 26.5.2.
+>
+> - **Bloqueado con la pantalla encendida** (pantalla de bloqueo a la vista): **lee la etiqueta y
+>   abre el hub.** No hace falta desbloquear.
+> - **Pantalla apagada / dormida:** no dispara.
+>
+> Esto es el comportamiento **documentado** de Apple, no un límite de este proyecto: la lectura de
+> etiquetas en segundo plano (*Background Tag Reading*, Core NFC) exige que el dispositivo esté «en
+> uso», y una pantalla de bloqueo encendida cumple esa condición mientras que una pantalla apagada
+> no.
+
+**Los dos ecosistemas pasan, pero con umbrales distintos — y esa es la conclusión que importa.**
+
+| | Lee la etiqueta cuando… | Origen |
+|---|---|---|
+| **iPhone** (iOS 26.5.2) | la pantalla está encendida, aunque esté bloqueada | Diseño documentado de Apple: *Background Tag Reading* (Core NFC) exige dispositivo «en uso» |
+| **Android** (16, `BP2A.250605.031.A3`) | el móvil está desbloqueado | Comportamiento de SO/fabricante; sin ajuste que lo cambie en este dispositivo |
+
+La restricción encontrada en Android **no es del producto**: es de un ecosistema, y el otro pone el
+listón más bajo. Ninguno de los dos es un defecto que arreglar aquí, y los dos cumplen FR-010,
+porque en cada plataforma lo exigido es el flujo normal de ese sistema operativo.
+
+Lo que sí cambia es **lo que se le cuenta a un cliente**: en la mesa, un cliente con iPhone
+normalmente solo tiene que despertar la pantalla, mientras que uno con Android tiene que
+desbloquear. Merece la pena decirlo antes de instalar, no después de la primera queja.
 
 ### Cómo repetirla (iPhone, o Android con el ajuste cambiado)
 
@@ -328,15 +348,30 @@ Filas en orden de prioridad, no de número.
 | # | Comprobación | Resultado | Dispositivo / SO | Notas |
 |---|--------------|-----------|------------------|-------|
 | 1 | vCard en iOS Safari | ✅ **PASA** | iPhone — iOS 26.5.2 | Abre el importador de contactos. **Riesgo D5 cerrado; FR-020 se sostiene sin enmienda.** El aviso de HTTP no aplica a un resultado positivo |
-| 4a | Tap NFC, desbloqueado | ✅ pasa (Android) / ⬜ iPhone sin probar | Android 16, build `BP2A.250605.031.A3` | Abre el hub correctamente |
-| 4b | Tap NFC, bloqueado | ⚠️ restricción de plataforma confirmada (Android) / ⬜ iPhone sin probar | Android 16, build `BP2A.250605.031.A3` | No pasa **nada** con la pantalla bloqueada, y **no existe ajuste** de lectura NFC en pantalla de bloqueo en este dispositivo. Comportamiento de SO/fabricante, no defecto de código. Cumple FR-010: desbloquear es el flujo normal del SO |
+| 4a | Tap NFC, desbloqueado | ✅ pasa (Android e iPhone) | Android 16 `BP2A.250605.031.A3` / iPhone iOS 26.5.2 | Abre el hub correctamente. En iPhone se deduce del resultado 4b: si lee con la pantalla bloqueada, desbloqueado es el caso más fácil |
+| 4b | Tap NFC, bloqueado | ✅ pasa en iPhone con pantalla encendida / ⚠️ restricción de plataforma en Android | iPhone iOS 26.5.2 · Android 16 `BP2A.250605.031.A3` | **iPhone:** lee y abre con la pantalla de bloqueo encendida; con la pantalla apagada no. Es el diseño documentado de Apple — *Background Tag Reading* (Core NFC) exige dispositivo «en uso». **Android:** no pasa nada bloqueado y no existe ajuste que lo active. Distinto umbral por ecosistema; ninguno es defecto de este código y los dos cumplen FR-010 |
 | 2 | vCard en Android Chrome | ✅ **PASA** | Android 16, build `BP2A.250605.031.A3` | Importa los cuatro valores; dirección intacta como un solo campo |
 | 3 | Nocturno legible a oscuras | ⬜ abierta — prioridad baja | | Aplazada a propósito: evalúa un tema de ejemplo. Repetir con el tema de un cliente real |
 
-**Estado de T039: abierto.** Tres de las cuatro comprobaciones han pasado, incluida la única que
-podía cambiar el plan. Queda la comprobación 3 (aplazada deliberadamente hasta que exista el tema
-de un cliente real) y el tap NFC en iPhone. Por eso T039 sigue **sin marcar** en `tasks.md`: la
-tarea enumera las cuatro, y marcarla afirmaría una comprobación que no se ha hecho.
+**Estado de T039: funcionalmente completo, pendiente solo de una comprobación aplazada a
+propósito.**
+
+Las **cuatro** comprobaciones tienen ya resultado anotado. Las tres que podían descubrir un
+problema han pasado:
+
+- La 1 cierra el riesgo D5, el único de arquitectura del proyecto, y deja FR-020 en pie sin
+  enmienda.
+- La 2 confirma el mismo mecanismo en el otro ecosistema.
+- La 4 queda cerrada en ambos, con dos umbrales distintos y documentados, ninguno de ellos un
+  defecto de este código.
+
+Lo único abierto es la **comprobación 3** (contraste nocturno), y no está abierta por falta de
+tiempo: está **aplazada deliberadamente** porque evalúa la paleta de un tema de ejemplo que un
+cliente real casi con seguridad sustituirá. Es de prioridad baja por esa razón, no por descuido.
+
+**T039 sigue sin marcar en `tasks.md`**, porque la tarea enumera las cuatro comprobaciones por
+nombre y marcarla afirmaría una que no se ha hecho. Se marca cuando se haga la 3 — previsiblemente
+contra el tema del primer cliente real, que es cuando su resultado significa algo.
 
 **Antes de terminar, confirma que el repositorio está limpio:**
 
@@ -349,5 +384,5 @@ npm test                      # 75 pasan, 5 saltadas
 Ese último comando importa más que antes: la suite es la condición de publicación del workflow de
 despliegue, así que un árbol sucio con datos de prueba se publicaría solo en el siguiente push.
 
-Después rellena la tabla y haz commit. T039 se marca en `tasks.md` cuando estén las cuatro
-comprobaciones: hoy falta la 3, y el tap NFC en iPhone.
+Después rellena la tabla y haz commit. T039 se marca en `tasks.md` cuando esté la comprobación 3,
+que es la única que queda.
