@@ -1,217 +1,211 @@
-# NFC Hubs — Fase 1
+# NFC Hubs — Phase 1
 
-Páginas «hub» activadas por NFC para locales de hostelería. Cada mesa lleva una etiqueta física;
-al acercar el móvil se abre una lista corta de enlaces útiles de ese local. Salida estática pura,
-sin backend.
+NFC-activated hub pages for hospitality venues. Each table carries a physical tag; tapping it
+opens a short list of useful links for that venue. Pure static output, no backend.
 
-Hay **un solo arquetipo genérico**, no uno por tipo de negocio. El motor soporta un catálogo de
-tipos de entrada, y cada instancia de negocio elige cuáles usa y en qué orden, en sus propios
-datos.
+There is **one generic archetype**, not one per kind of business. The engine supports a catalog of
+entry types, and each business instance chooses which of them it uses and in what order, in its
+own data.
 
-| Hub | URL local | En producción | Registro visual |
+| Hub | Local URL | In production | Visual register |
 |-----|-----------|---------------|-----------------|
-| `demo` — [ES] «Taberna Vela y Sal» | `/demo/` | <https://diegojs97.github.io/nfc-hubs/demo/> | nocturno |
+| `demo` — [ES] "Taberna Vela y Sal" | `/demo/` | <https://diegojs97.github.io/nfc-hubs/demo/> | nocturnal |
 
-`demo` es un local **ficticio**, creado para poder enseñar el producto a un cliente potencial.
-No es un cliente real y sus datos están inventados a propósito.
+`demo` is a **fictional** venue, built so the product can be shown to a prospect. It is not a real
+client and its data is invented on purpose.
 
-Los requisitos viven en [`specs/001-nfc-hubs-fase1/`](specs/001-nfc-hubs-fase1/) y en
-[`.specify/memory/constitution.md`](.specify/memory/constitution.md). Este fichero cubre cómo
-ejecutar el proyecto y, sobre todo, cómo sustituir los datos marcados como pendientes por
-valores reales.
+Requirements live in [`specs/001-nfc-hubs-fase1/`](specs/001-nfc-hubs-fase1/) and in
+[`.specify/memory/constitution.md`](.specify/memory/constitution.md). This file covers how to run
+the project and, most importantly, how to replace placeholder data with real values.
 
-## Puesta en marcha
+## Getting started
 
-Requiere **Node 24 LTS** (fijado en `.nvmrc`).
+Requires **Node 24 LTS** (pinned in `.nvmrc`).
 
 ```bash
 npm install
-npx playwright install chromium webkit   # solo hace falta para ejecutar los tests
+npx playwright install chromium webkit   # only needed to run the tests
 npm run dev                              # http://localhost:8080/demo/
 ```
 
-## Sustituir datos pendientes por datos reales
+## Replacing placeholder data with real data
 
-**Este es todo el flujo de mantenimiento.** Poner valores reales significa editar un fichero por
-negocio y nada más:
+**This is the whole maintenance workflow.** Going live with real values means editing one file per
+business and nothing else:
 
 ```
 src/businesses/demo/business.json
 ```
 
-Nunca se toca una plantilla, una hoja de estilos ni código para confirmar datos reales.
+You never touch a template, a stylesheet, or any code to confirm real data.
 
-### El centinela
+### The sentinel
 
-Todo valor que el dueño del local aún no ha confirmado contiene exactamente esta cadena:
+Every value the owner has not yet confirmed holds this exact string:
 
 ```
 [PLACEHOLDER - replace]
 ```
 
-Sustituir la cadena por el valor real es toda la operación:
+Replacing the string with the real value is the entire operation:
 
 ```diff
 - { "id": "menu", "label": "Carta", "type": "link", "url": "[PLACEHOLDER - replace]" }
 + { "id": "menu", "label": "Carta", "type": "link", "url": "https://ejemplo.es/carta" }
 ```
 
-Se reconstruye y esa entrada pasa de ser un botón que no navega y muestra
-[ES] *«Pendiente de confirmar»* a ser un enlace real. Todo lo que siga con el centinela sigue
-mostrando el aviso, así que a un cliente nunca se le manda a un destino muerto o equivocado.
+Rebuild, and that entry changes from a non-navigating button showing
+[ES] *"Pendiente de confirmar"* into a real link. Anything still holding the sentinel keeps showing
+the notice, so a customer is never sent to a dead or wrong destination.
 
-**El centinela tiene que ser exacto.** Un espacio de más, o un sustituto amable tipo
-`"Taberna (nombre pendiente)"`, se lee como *valor confirmado* — y se le enseñaría al cliente
-como si fuera real. La compilación rechaza los casi-aciertos, pero no puede detectar una cadena
-inventada completamente distinta. Esto vale también para `name`.
+**The sentinel must be exact.** A trailing space, or a friendly stand-in like
+`"Taberna (nombre pendiente)"`, is read as a *confirmed value* — and would be shown to customers as
+real. The build rejects near-misses, but it cannot detect an entirely different invented string.
+This applies to `name` too.
 
-### Qué queda pendiente
+### What is still outstanding
 
 ```bash
-npm run audit:placeholders            # lista cada valor sin confirmar y dónde está
-npm run audit:placeholders -- --strict # sale con código ≠ 0 si queda alguno (control previo al lanzamiento)
+npm run audit:placeholders            # lists every unconfirmed value and where it is
+npm run audit:placeholders -- --strict # exits non-zero if any remain (pre-go-live gate)
 ```
 
-Ahora mismo quedan **3**, todos en `demo`, y **están así a propósito**:
+There are **3** right now, all in `demo`, and **all of them are deliberate**:
 
-| Valor | Por qué sigue siendo el centinela |
+| Value | Why it is still the sentinel |
 |---|---|
-| `placeId` | Un place ID real haría que «Reseña Google» dejara una reseña en un local ajeno, y que «Cómo llegar» llevara al cliente potencial a otra ciudad |
-| `contact.phone` | España no reserva ningún rango de números ficticios: cualquier `+34` verosímil puede ser de una persona real |
-| `entries[2].url` (el enlace provisional de «Cómo llegar») | Llevaba el mismo place ID una segunda vez |
+| `placeId` | A real place ID would make "Reseña Google" file a review against an unrelated venue, and "Cómo llegar" navigate a prospect to another city |
+| `contact.phone` | Spain reserves no fictional number range: any plausible `+34` may belong to a real person |
+| `entries[2].url` (the interim link on "Cómo llegar") | It carried the same place ID a second time |
 
-Tres entradas pendientes en una demo es honesto, y además sirve de demostración en vivo del
-estado «pendiente» — una función que, si no, el cliente potencial tendría que creerse sin verla.
-No hay que «terminarlas».
+Three pending entries on a demo is honest, and it doubles as a live demonstration of the pending
+state — a feature a prospect would otherwise have to take on trust. They are not to be "finished".
 
-### Reglas que importan
+### Rules that matter
 
-- **Nunca renombrar un `id`.** Los ids de entrada (`menu`, `reserve`, `review`, …) se convierten
-  en los segmentos de ruta `/r/<id>` de la analítica de la Fase 2. Renombrar uno hoy es gratis y
-  rompe en silencio la atribución de taps una vez que las etiquetas están puestas en las mesas.
-  Ver [`contracts/hub-url.md`](specs/001-nfc-hubs-fase1/contracts/hub-url.md).
-- **Añadir, quitar o reordenar entradas SÍ está permitido.** Es un cambio de datos, no de
-  especificación (FR-018). El orden del array *es* el orden de prioridad que ve el cliente. Lo
-  que sí es un cambio de especificación es añadir un **tipo** nuevo al catálogo (FR-016).
-- **Nunca añadir una contraseña de WiFi.** Solo se muestra el *nombre* de la red, como texto
-  inerte. La conexión real la resuelve el registro NDEF «Wi-Fi Simple Config» de la propia
-  etiqueta, escrito al programarla — no este sitio.
-- **La tarjeta de contacto es todo o nada.** [ES] «Guardar contacto» genera una vCard solo
-  cuando `name`, `phone`, `address` y `website` están *todos* confirmados. Hasta entonces
-  muestra el aviso de pendiente y no genera nada, en vez de guardar un contacto a medias en el
-  móvil de alguien.
+- **Never rename an `id`.** Entry ids (`menu`, `reserve`, `review`, …) become the Phase 2
+  `/r/<id>` analytics route segments. Renaming one is free today and silently breaks tap
+  attribution once tags are in the field. See
+  [`contracts/hub-url.md`](specs/001-nfc-hubs-fase1/contracts/hub-url.md).
+- **Adding, removing, or reordering entries IS allowed.** It is a data change, not a spec change
+  (FR-018). Array order *is* the customer-facing priority order. What *is* a spec change is adding
+  a new **type** to the catalog (FR-016).
+- **Never add a WiFi password.** Only the network *name* is displayed, as inert text. The actual
+  connection is handled by the tag's own Wi-Fi Simple Config NDEF record, written when the tag is
+  programmed — not by this site.
+- **The contact card is all-or-nothing.** [ES] "Guardar contacto" produces a vCard only when
+  `name`, `phone`, `address`, and `website` are *all* confirmed. Until then it shows the pending
+  notice and generates nothing, rather than saving a half-complete contact to someone's phone.
 
-### El catálogo de tipos de entrada
+### The entry-type catalog
 
-Un negocio elige de esta lista. Añadir un tipo nuevo es un cambio de especificación (FR-016).
+A business picks from this list. Adding a new type is a spec change (FR-016).
 
-| Tipo | Destino | Se confirma cuando |
+| Type | Destination | Confirmed when |
 |---|---|---|
-| `link` | la `url` de esa misma entrada | `url` no es el centinela |
-| `review` | reseña de Google (writereview), a partir de `placeId` | `placeId` no es el centinela |
-| `maps` | ficha del negocio en Google Maps, a partir del mismo `placeId` | `placeId` no es el centinela |
-| `tel` | URI `tel:` a partir de `contact.phone` | `contact.phone` no es el centinela |
-| `wifi` | ninguno — texto informativo inerte | `wifiSsid` no es el centinela |
-| `vcard` | acción local del navegador | los cuatro valores de contacto están confirmados |
+| `link` | that entry's own `url` | `url` is not the sentinel |
+| `review` | Google review (writereview), from `placeId` | `placeId` is not the sentinel |
+| `maps` | the business's Google Maps place page, from the same `placeId` | `placeId` is not the sentinel |
+| `tel` | `tel:` URI from `contact.phone` | `contact.phone` is not the sentinel |
+| `wifi` | none — inert informational text | `wifiSsid` is not the sentinel |
+| `vcard` | local browser action | all four contact values are confirmed |
 
-`maps` es deliberadamente un enlace normal a la ficha del sitio. Ninguna API web añade un lugar
-a la lista de guardados de Google de nadie, así que el hub no puede dar a entender que lo hace.
+`maps` is deliberately a plain link to the place page. No web API adds a place to anyone's Google
+saved list, so the hub must not imply that it does.
 
-El módulo de vCard es **opcional**: un hub lo tiene exactamente cuando sus datos declaran una
-entrada `vcard`, y un hub sin ella no descarga nada de ese código. `demo` no la declara.
+The vCard module is **optional**: a hub has it exactly when its data declares a `vcard` entry, and
+a hub without one downloads none of that code. `demo` does not declare one.
 
-### Qué se niega a aceptar la compilación
+### What the build refuses to accept
 
-`npm run build` falla, nombrando el campo culpable, ante:
+`npm run build` fails, naming the offending field, on:
 
-- una clave obligatoria que falta
-- una cadena vacía o `null` (usa el centinela en su lugar)
-- un casi-centinela, por ejemplo con un espacio final
-- una `slug` que no coincide con el nombre de su carpeta
-- una entrada `tel` o `vcard` en un negocio sin bloque `contact`
+- a missing required key
+- an empty string or `null` (use the sentinel instead)
+- a near-miss sentinel, for example with a trailing space
+- a `slug` that does not match its folder name
+- a `tel` or `vcard` entry in a business with no `contact` block
 
-Es deliberado: una errata que marcara en silencio una entrada como «confirmada» mandaría a los
-clientes a `undefined`.
+This is deliberate: a typo that silently marked an entry "confirmed" would send customers to
+`undefined`.
 
-## Comandos
+## Commands
 
-| Comando | Qué hace |
-|---------|----------|
-| `npm run dev` | Servidor de desarrollo de Eleventy con recarga en vivo |
-| `npm run build` | Compila a `_site/` |
-| `npm run serve` | Sirve el `_site/` compilado (lo que usan los tests) |
-| `npm test` | Validación + E2E + accesibilidad + presupuesto + rebuild |
-| `npm run test:validation` | Casos de rechazo del contrato de datos, tipos de entrada, ruta base |
-| `npm run test:e2e` | Orden de entradas, comportamiento pendiente, WiFi inerte, vCard, `?m=` |
-| `npm run test:a11y` | WCAG 2.2 AA con axe |
-| `npm run test:budget` | Carga ≤100 KB, sin peticiones a terceros, tiempos |
-| `npm run test:rebuild` | Los dos tests que reescriben `business.json` y recompilan |
-| `npm run audit:placeholders` | Lista los valores sin confirmar |
+| Command | What it does |
+|---------|--------------|
+| `npm run dev` | Eleventy dev server with live reload |
+| `npm run build` | Build to `_site/` |
+| `npm run serve` | Serve the built `_site/` (what the tests use) |
+| `npm test` | Validation + E2E + accessibility + budget + rebuild |
+| `npm run test:validation` | Data-contract rejection cases, entry types, base path |
+| `npm run test:e2e` | Entry order, pending behaviour, inert WiFi, vCard, `?m=` |
+| `npm run test:a11y` | WCAG 2.2 AA via axe |
+| `npm run test:budget` | ≤100 KB payload, no third-party requests, timing |
+| `npm run test:rebuild` | The two tests that rewrite `business.json` and rebuild |
+| `npm run audit:placeholders` | List unconfirmed values |
 
-Ejecutar un fichero o un test concreto:
+Run a single file or test:
 
 ```bash
 npx playwright test tests/e2e/demo.spec.ts
 npx playwright test -g "SC-001"
 ```
 
-Los tests corren solo en dos dispositivos emulados (iPhone/WebKit, Pixel/Chromium). No hay
-viewport de escritorio: tras un tap, el tráfico es 100% móvil.
+Tests run on two mobile-emulated devices only (iPhone/WebKit, Pixel/Chromium). There is no desktop
+viewport: after a tap, traffic is 100% mobile.
 
-**`tests/rebuild/` va aparte y con `--workers=1` a propósito.** Esos dos tests reescriben
-`business.json` y recompilan `_site/` mientras el resto de la suite lee ambas cosas. En paralelo
-compiten, y el síntoma es un fallo cuyo valor *esperado* es el centinela. Si mueves un test a esa
-carpeta, acuérdate de que cada script filtra por ruta: moverlo sin engancharlo a `test:rebuild`
-dejaría la suite en verde mientras el test deja de ejecutarse.
+**`tests/rebuild/` is separate and runs with `--workers=1` on purpose.** Those two tests rewrite
+`business.json` and rebuild `_site/` while the rest of the suite reads both. Run in parallel they
+race, and the symptom is a failure whose *expected* value is the sentinel. If you move a test into
+that folder, remember that each script filters by path: moving it without wiring it to
+`test:rebuild` would leave the suite green while the test stops running.
 
-## El parámetro de mesa
+## The table parameter
 
-Las etiquetas codifican `https://<host>/<slug>/?m=<mesa>`. La Fase 1 **ignora** `m` por completo:
-no se lee, ni se muestra, ni se guarda, ni se transmite. Existe en la URL para que la Fase 2
-pueda atribuir un tap a su mesa sin que nadie tenga que reescribir físicamente las etiquetas.
+Tags encode `https://<host>/<slug>/?m=<table>`. Phase 1 **ignores** `m` completely: it is never
+read, displayed, stored, or transmitted. It exists in the URL so Phase 2 can attribute a tap to its
+table without anyone physically rewriting the tags.
 
-## Despliegue
+## Deployment
 
-**En producción:** <https://diegojs97.github.io/nfc-hubs/demo/> — HTTPS forzado.
+**In production:** <https://diegojs97.github.io/nfc-hubs/demo/> — HTTPS enforced.
 
-`.github/workflows/deploy.yml` compila con Eleventy, ejecuta la suite completa como control de
-publicación y despliega `_site/` en GitHub Pages en cada push a `master`.
+`.github/workflows/deploy.yml` builds with Eleventy, runs the full suite as the release gate, and
+deploys `_site/` to GitHub Pages on every push to `master`.
 
-### La ruta base
+### The base path
 
-Una *project page* de GitHub se sirve desde `https://<usuario>.github.io/<repo>/`, no desde la
-raíz del host. Como todas las referencias a assets del layout son absolutas, sin prefijo el sitio
-desplegado cargaría el HTML y luego daría 404 en `base.css`, `theme.css` y `pending.js`: una
-página sin estilos y sin comportamiento de pendiente, invisible en cualquier prueba local servida
-desde la raíz.
+A GitHub *project page* is served from `https://<user>.github.io/<repo>/`, not from the root of the
+host. Because every asset reference in the layout is absolute, without a prefix the deployed site
+would load its HTML and then 404 on `base.css`, `theme.css`, and `pending.js`: an unstyled page
+with no pending behaviour, and invisible in any local run served from the root.
 
-`scripts/lib/path-prefix.mjs` contiene `PATH_PREFIX = "/nfc-hubs/"`. Una constante, dos
-consumidores: `eleventy.config.js` se la pasa al filtro `url`, y `scripts/serve-static.mjs` la
-quita, de modo que la suite pide los assets en sus URLs reales de producción.
+`scripts/lib/path-prefix.mjs` holds `PATH_PREFIX = "/nfc-hubs/"`. One constant, two consumers:
+`eleventy.config.js` feeds it to the `url` filter, and `scripts/serve-static.mjs` strips it, so the
+suite requests assets at their real production URLs.
 
-> ⚠ **`PATH_PREFIX` está atado al nombre del repositorio.** Renombrarlo, mudarse a un repo de
-> Pages de usuario/organización o poner un dominio propio cambian ese valor (en los dos últimos
-> casos pasa a ser `/`). El workflow lo compara con el nombre real del repositorio y falla en
-> alto — es la única comprobación que solo CI puede hacer, porque en local el prefijo es cierto
-> por definición: el compilador y el servidor de tests leen la misma constante.
+> ⚠ **`PATH_PREFIX` is tied to the repository name.** Renaming it, moving to a user/org Pages repo,
+> or attaching a custom domain all change that value (in the last two cases it becomes `/`). The
+> workflow compares it against the repository's real name and fails loudly — it is the one check
+> only CI can make, because locally the prefix is true by definition: the builder and the test
+> server read the same constant.
 
-### Antes de escribir una sola etiqueta
+### Before writing a single tag
 
-> ⚠ **Fija el host de producción definitivo antes de escribir ninguna etiqueta NFC.** La
-> etiqueta codifica la URL completa, y volver a grabarlas es trabajo manual, mesa por mesa, fuera
-> de este proyecto. Añadir un dominio propio después de haberlas escrito las invalida todas.
-> Desplegar es reversible; grabar etiquetas no lo es — se puede desplegar a una URL temporal para
-> pruebas de dispositivo, siempre que no se escriba ninguna etiqueta de local contra ella.
+> ⚠ **Settle the final production host before writing any NFC tag.** The tag encodes the full URL,
+> and re-programming them is manual work, table by table, outside this project. Adding a custom
+> domain after they are written invalidates every one of them. Deploying is reversible; tag writing
+> is not — you can deploy to a temporary URL for device testing, provided no venue tags are written
+> against it.
 
-`wrangler.toml` sigue en el árbol sin tocar. Cloudflare Pages continúa siendo la candidata para
-la fase que necesite un redirector `/r/<entry-id>` en servidor, que GitHub Pages no puede
-ejecutar. Es una decisión de Fase 2, no de ahora.
+`wrangler.toml` stays in the tree untouched. Cloudflare Pages remains the candidate for the phase
+that needs a server-side `/r/<entry-id>` redirector, which GitHub Pages cannot run. That is a Phase
+2 decision, not this one.
 
-## Verificación que no se puede automatizar
+## Verification that cannot be automated
 
-Algunas comprobaciones requieren hardware real y no las cubre la suite (T039): importación de
-vCard en iOS Safari, importación en Android Chrome, leer el hub nocturno en una habitación a
-oscuras, y un tap NFC real con el móvil bloqueado y desbloqueado. Las comprobaciones automáticas
-de contraste solo evalúan colores *declarados*, y un WebKit emulado no dice nada sobre si iOS
-abre el importador de contactos. El procedimiento está en
+Some checks require real hardware and are not covered by the suite (T039): iOS Safari vCard import,
+Android Chrome import, reading the nocturnal hub in a dark room, and a real NFC tap with the phone
+both locked and unlocked. Automated contrast checks only evaluate *declared* colours, and an
+emulated WebKit says nothing about whether iOS opens the contact importer. The procedure is in
 [`docs/t039-device-checks.md`](docs/t039-device-checks.md).
