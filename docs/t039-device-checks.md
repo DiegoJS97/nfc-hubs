@@ -209,11 +209,17 @@ mesa. FR-010 exige que el hub se abra «sin pasos extra más allá del flujo nor
 operativo» — y desbloquear el móvil *es* el flujo normal de ese sistema operativo, así que el
 requisito se cumple.
 
-> **RESULTADO en iPhone (2026-08-08): pasa con la pantalla de bloqueo encendida.** iOS 26.5.2.
+> **RESULTADO en iPhone (2026-08-08): pasa con la pantalla encendida, bloqueado o no.** iOS 26.5.2.
+> Los **tres** estados se probaron directamente:
 >
-> - **Bloqueado con la pantalla encendida** (pantalla de bloqueo a la vista): **lee la etiqueta y
->   abre el hub.** No hace falta desbloquear.
+> - **Desbloqueado, pantalla encendida:** lee la etiqueta y abre el hub.
+> - **Bloqueado, pantalla encendida** (pantalla de bloqueo a la vista): **lee la etiqueta y abre el
+>   hub.** No hace falta desbloquear.
 > - **Pantalla apagada / dormida:** no dispara.
+>
+> Es decir: en iPhone lo que decide **no es el bloqueo, sino si la pantalla está encendida**. Es una
+> distinción útil al explicárselo a un cliente, porque no es la que uno esperaría por analogía con
+> Android.
 >
 > Esto es el comportamiento **documentado** de Apple, no un límite de este proyecto: la lectura de
 > etiquetas en segundo plano (*Background Tag Reading*, Core NFC) exige que el dispositivo esté «en
@@ -348,7 +354,7 @@ Filas en orden de prioridad, no de número.
 | # | Comprobación | Resultado | Dispositivo / SO | Notas |
 |---|--------------|-----------|------------------|-------|
 | 1 | vCard en iOS Safari | ✅ **PASA** | iPhone — iOS 26.5.2 | Abre el importador de contactos. **Riesgo D5 cerrado; FR-020 se sostiene sin enmienda.** El aviso de HTTP no aplica a un resultado positivo |
-| 4a | Tap NFC, desbloqueado | ✅ pasa (Android e iPhone) | Android 16 `BP2A.250605.031.A3` / iPhone iOS 26.5.2 | Abre el hub correctamente. En iPhone se deduce del resultado 4b: si lee con la pantalla bloqueada, desbloqueado es el caso más fácil |
+| 4a | Tap NFC, desbloqueado | ✅ pasa (Android e iPhone) | Android 16 `BP2A.250605.031.A3` / iPhone iOS 26.5.2 | Abre el hub correctamente. Probado directamente en ambos, no deducido |
 | 4b | Tap NFC, bloqueado | ✅ pasa en iPhone con pantalla encendida / ⚠️ restricción de plataforma en Android | iPhone iOS 26.5.2 · Android 16 `BP2A.250605.031.A3` | **iPhone:** lee y abre con la pantalla de bloqueo encendida; con la pantalla apagada no. Es el diseño documentado de Apple — *Background Tag Reading* (Core NFC) exige dispositivo «en uso». **Android:** no pasa nada bloqueado y no existe ajuste que lo active. Distinto umbral por ecosistema; ninguno es defecto de este código y los dos cumplen FR-010 |
 | 2 | vCard en Android Chrome | ✅ **PASA** | Android 16, build `BP2A.250605.031.A3` | Importa los cuatro valores; dirección intacta como un solo campo |
 | 3 | Nocturno legible a oscuras | ⬜ abierta — prioridad baja | | Aplazada a propósito: evalúa un tema de ejemplo. Repetir con el tema de un cliente real |
