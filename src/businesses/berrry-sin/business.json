@@ -1,0 +1,20 @@
+{
+  "slug": "berrry-sin",
+  "name": "Berrry.Sin",
+  "register": "nocturnal",
+  "lang": "es",
+  "wifiSsid": "[PLACEHOLDER - replace]",
+  "placeId": "ChIJLw6eGxEmPw0RnCh2ogN1KjY",
+  "contact": {
+    "phone": "[PLACEHOLDER - replace]",
+    "address": "C. Corrales de Monroy, 35, 37001 Salamanca, España",
+    "website": "https://shop.berrry-sin.com"
+  },
+  "entries": [
+    { "id": "shop", "label": "Ver tienda", "type": "link", "url": "https://shop.berrry-sin.com" },
+    { "id": "maps", "label": "Cómo llegar (Kiodai · PMU & Prót.)", "type": "maps" },
+    { "id": "review", "label": "Reseña Google (Kiodai · PMU & Prót.)", "type": "review" },
+    { "id": "tel", "label": "Llamar", "type": "tel" },
+    { "id": "vcard", "label": "Guardar contacto", "type": "vcard" }
+  ]
+}

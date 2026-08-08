@@ -1,0 +1,15 @@
+---
+layout: layouts/hub.njk
+slug: berrry-sin
+permalink: /berrry-sin/index.html
+---
+
+{#
+  Binding only. This file names which business to render and where the page lives; every
+  label, destination, and value comes from business.json via the data cascade.
+
+  The slug is absent from validate.js's ENTRY_ORDER table, so this instance chooses its own
+  entry set and order freely - which is exactly what the generic archetype allows (FR-018).
+  It is the first instance to use `tel` and `vcard`, so it is also the first hub that ships
+  _engine/vcard.js.
+#}

@@ -1,0 +1,64 @@
+/*
+ * Berrry.Sin - REFERENCE-SCREENSHOT PHASE. This is not the final design.
+ *
+ * Its only job is to produce a clean capture to decide the real design against. That is why
+ * there is no branding, no background image, and no decorative element here: flat rectangular
+ * blocks, one vertical column, on black. The block colour is a deliberate neutral grey - the
+ * brand arrives later and replaces these values.
+ *
+ * The engine's usual split: base.css owns structure and the accessibility floor (44px minimum
+ * target, visible focus); theme.css owns only colour and typography.
+ *
+ * One deliberate exception to that split, below: the list's `gap`. It is a structural
+ * property, overridden here on purpose because the spacing between blocks is precisely one of
+ * the things the capture exists to judge.
+ */
+
+:root {
+  /* Page ground: flat black, no gradient, no image. */
+  --hub-bg: #000000;
+  --hub-fg: #ffffff; /* on --hub-bg: 21:1 */
+  --hub-muted: #c9c9c9; /* on --entry-bg: ~8.2:1 */
+
+  /* Solid, readable block. Neutral on purpose: branding comes later. */
+  --entry-bg: #2e2e2e;
+  --entry-fg: #ffffff; /* on --entry-bg: ~13.6:1 */
+
+  /*
+   * No visible border: a block must read as a flat surface, not an outlined box. Matched to
+   * the block fill rather than set to `transparent` so the 1px base.css already reserves is
+   * kept - block height then does not shift when the final design brings a border back.
+   */
+  --entry-border: #2e2e2e;
+
+  /* Simple radius. No 3D or isometric styling in this phase. */
+  --entry-radius: 4px;
+
+  --focus-ring: #ffffff;
+}
+
+/*
+ * VERTICAL GAP BETWEEN BLOCKS: 16px (1rem).
+ *
+ * base.css ships 0.75rem (12px). Raised to 1rem for two reasons: it separates the blocks
+ * enough that each reads as its own piece in the capture, and it leaves a round number to
+ * start from when the final design is decided.
+ */
+.entries {
+  gap: 1rem; /* 16px */
+}
+
+/*
+ * Flat typography: no small caps, no tracking, no serif. The less character this phase has,
+ * the more honest the capture is as a starting point.
+ */
+.hub__name {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.entry__label {
+  font-weight: 600;
+  letter-spacing: 0;
+}
