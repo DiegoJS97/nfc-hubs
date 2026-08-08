@@ -1,6 +1,6 @@
 # Pivot summary — from two named archetypes to one generic one
 
-**Date**: 2026-08-07
+**Date**: 2026-08-07 (documentation pass: 2026-08-08)
 **Branch**: `master`
 **Commits**: `c59e192`, `bd4aeae`, `a5e5a14`, `573b408`, `d567b22`, `7f1a42f`, `02527a6`, `aba4b2c`,
 `5f7ccf6`, `4cd2737`, `14d6157`, `372b09c` — twelve, oldest first
@@ -261,17 +261,27 @@ target floor without a new CSS rule. The temporary data was reverted and never c
 
 ---
 
-## Stale docs — need a rewrite pass in a future session
+## Stale docs — rewritten 2026-08-08
 
-Not touched in this session. All of them describe the two-archetype world.
+All five are done. None of them was merely dated: each stated a rule that the current repo
+contradicts, which is worse than being out of date, because they read as authoritative.
 
-| File | Why it is stale |
-|---|---|
-| `README.md` | Describes the project as two hospitality venues |
-| `CLAUDE.md` | "Business archetypes" section mandates the two entry sets; Commands cites `tests/e2e/tapas.spec.ts`; unaware of `tests/rebuild/`, `test:rebuild`, `pathPrefix`, and the `maps`/`tel` types; still says `scripts/audit-placeholders.mjs` does not exist, which it does |
-| `docs/overview.md` | Two-business architecture |
-| `docs/validation-report.md` | Validates Phase 1 against the OLD FR-016/FR-018, which `4cd2737` replaced — it now reports against requirements that no longer say what it claims |
-| `docs/t039-device-checks.md` | Device procedure written around the tapas vCard |
+| File | Commit | What was actually wrong |
+|---|---|---|
+| `CLAUDE.md` | `396fa09` | Mandated the copas/tapas entry sets and told a future session to refuse a business with no FR defining its entries — the exact behaviour the pivot removed. Also cited a deleted test file, named Cloudflare as the host, and claimed `audit-placeholders.mjs` was unwritten |
+| `README.md` | `081cfeb` | "Never add, remove, or reorder entries" — the inverse of FR-018. A maintainer following it would have refused a change the build accepts. Deployment section said nothing was deployed |
+| `docs/overview.md` | `96a7036` | Two-vertical narrative, plus a design principle that a venue owner cannot reorder entries. The save-contact section was rewritten rather than deleted: same argument, decision moved from spec to configuration |
+| `docs/validation-report.md` | `30f390f` | Validated SC-001 against the OLD FR-016/FR-018. Re-run today: SC-003 closes (deployed), SC-005 and SC-006 are recorded as genuinely weaker |
+| `docs/t039-device-checks.md` | `64d3fe4` | Written around the tapas vCard. `demo` declares no `vcard` entry at all, so the temporary swap needed a second part; and checks 1–2 cannot use the live URL, because invented data must not be pushed |
+
+Two things the rewrite pass established rather than merely recorded:
+
+- **The temporary-vcard swap was executed and reverted**, not just written down: it builds to 7
+  entries with the entry confirmed, ships `_engine/vcard.js`, and `git checkout` restores the
+  three placeholders and a clean tree.
+- **Document language is now a written convention** (`CLAUDE.md` → Conventions). `CLAUDE.md` and
+  the constitution stay English — an agent loads them every session. The four reader-facing docs
+  are Spanish. `[ES]` customer-facing strings are never translated in either.
 
 ---
 
@@ -349,7 +359,7 @@ rather than tidy one.
 
 ### Ordinary follow-up
 
-- The five stale docs above.
+- ~~The five stale docs above.~~ Done 2026-08-08 — see the table above.
 - Verify "Taberna Vela y Sal" is not a real venue.
 - T039 device checks on real hardware.
 - Decide whether to populate `placeId`, `contact.phone`, and the `maps`/`tel` entries — a data
