@@ -134,11 +134,9 @@ debe ser [ES] «Guardar contacto» **sin** distintivo de pendiente.
 
 ## Comprobación 1 — Importación de vCard en iOS Safari ✅ PASA
 
-> **RESULTADO (2026-08-08): PASA.** iOS Safari abre el importador de contactos con la vCard
-> generada en el navegador. **El riesgo D5 queda cerrado y FR-020 se sostiene sin enmienda**: el
-> plan B del `.vcf` estático no se necesita.
->
-> Pendiente solo de anotar la **versión de iOS** (ver tabla de resultados).
+> **RESULTADO (2026-08-08): PASA.** iPhone con **iOS 26.5.2**. iOS Safari abre el importador de
+> contactos con la vCard generada en el navegador. **El riesgo D5 queda cerrado y FR-020 se
+> sostiene sin enmienda**: el plan B del `.vcf` estático no se necesita.
 >
 > La advertencia de HTTP de la preparación queda **sin efecto para este resultado**. Avisaba de un
 > posible falso negativo *si fallaba* por LAN; un resultado positivo en contexto no seguro no tiene
@@ -329,7 +327,7 @@ Filas en orden de prioridad, no de número.
 
 | # | Comprobación | Resultado | Dispositivo / SO | Notas |
 |---|--------------|-----------|------------------|-------|
-| 1 | vCard en iOS Safari | ✅ **PASA** | iPhone — iOS `[versión pendiente de anotar]` | Abre el importador de contactos. **Riesgo D5 cerrado; FR-020 se sostiene sin enmienda.** El aviso de HTTP no aplica a un resultado positivo |
+| 1 | vCard en iOS Safari | ✅ **PASA** | iPhone — iOS 26.5.2 | Abre el importador de contactos. **Riesgo D5 cerrado; FR-020 se sostiene sin enmienda.** El aviso de HTTP no aplica a un resultado positivo |
 | 4a | Tap NFC, desbloqueado | ✅ pasa (Android) / ⬜ iPhone sin probar | Android 16, build `BP2A.250605.031.A3` | Abre el hub correctamente |
 | 4b | Tap NFC, bloqueado | ⚠️ restricción de plataforma confirmada (Android) / ⬜ iPhone sin probar | Android 16, build `BP2A.250605.031.A3` | No pasa **nada** con la pantalla bloqueada, y **no existe ajuste** de lectura NFC en pantalla de bloqueo en este dispositivo. Comportamiento de SO/fabricante, no defecto de código. Cumple FR-010: desbloquear es el flujo normal del SO |
 | 2 | vCard en Android Chrome | ✅ **PASA** | Android 16, build `BP2A.250605.031.A3` | Importa los cuatro valores; dirección intacta como un solo campo |
