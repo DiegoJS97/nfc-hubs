@@ -18,16 +18,18 @@ Las comprobaciones **mantienen su numeración original** (se referencian desde
 `validation-report.md` y desde `tasks.md`), pero aparecen aquí en orden de importancia, no de
 número:
 
-| Prioridad | # | Comprobación | Estado hoy |
+| Prioridad | # | Comprobación | Estado (2026-08-08) |
 |---|---|---|---|
-| 1.ª — **la crítica** | 1 | vCard en iOS Safari | Abierta. Único riesgo técnico de arquitectura |
-| 2.ª | 4 | Tap NFC, bloqueado y desbloqueado | **Casi cerrada** en Android. Faltan detalles y el iPhone |
-| 3.ª | 2 | vCard en Android Chrome | Abierta, pero es el caso históricamente fiable |
-| 4.ª | 3 | Contraste nocturno a oscuras | Abierta, y de valor limitado hasta que haya un cliente real |
+| 1.ª — **la crítica** | 1 | vCard en iOS Safari | ✅ **PASA.** Riesgo D5 cerrado |
+| 2.ª | 4 | Tap NFC, bloqueado y desbloqueado | ✅ Pasa en Android, con restricción de plataforma confirmada en bloqueo. Falta el iPhone |
+| 3.ª | 2 | vCard en Android Chrome | ✅ **PASA** |
+| 4.ª | 3 | Contraste nocturno a oscuras | ⬜ Abierta, y de valor limitado hasta que haya un cliente real |
 
-La comprobación 1 es la única que puede cambiar el plan del proyecto: es un riesgo de
-**arquitectura**, independiente de qué cliente o qué tema acabe usando el sistema. Las demás o
-pasan o producen una restricción documentada.
+**El riesgo que podía cambiar el plan del proyecto ya no existe.** La comprobación 1 era un riesgo
+de **arquitectura** — independiente de qué cliente o qué tema acabe usando el sistema — y ha
+pasado: iOS Safari abre el importador de contactos con una vCard generada en el navegador, así que
+FR-020 se sostiene tal y como está escrito y el plan B del `.vcf` estático no hace falta. Lo que
+queda son restricciones documentadas y una comprobación aplazada a propósito.
 
 > **El orden de prioridad no es el orden de ejecución.** Las comprobaciones 1 y 2 comparten la
 > misma preparación temporal, así que si vas a hacerlas las dos en una sentada sale más barato
@@ -130,12 +132,25 @@ debe ser [ES] «Guardar contacto» **sin** distintivo de pendiente.
 
 ---
 
-## Comprobación 1 — Importación de vCard en iOS Safari ⚠ PRIORIDAD MÁXIMA
+## Comprobación 1 — Importación de vCard en iOS Safari ✅ PASA
 
-Este es el único riesgo técnico sin resolver del proyecto (research.md D5), y es el único de esta
+> **RESULTADO (2026-08-08): PASA.** iOS Safari abre el importador de contactos con la vCard
+> generada en el navegador. **El riesgo D5 queda cerrado y FR-020 se sostiene sin enmienda**: el
+> plan B del `.vcf` estático no se necesita.
+>
+> Pendiente solo de anotar la **versión de iOS** (ver tabla de resultados).
+>
+> La advertencia de HTTP de la preparación queda **sin efecto para este resultado**. Avisaba de un
+> posible falso negativo *si fallaba* por LAN; un resultado positivo en contexto no seguro no tiene
+> esa ambigüedad, porque HTTPS es estrictamente más permisivo. No hace falta repetirla en HTTPS.
+
+Este era el único riesgo técnico sin resolver del proyecto (research.md D5), y es el único de esta
 lista que es un riesgo **de arquitectura**: no depende del cliente, ni del tema, ni de qué
-entradas elija un local. Si iOS no abre el importador de contactos, el módulo de guardar contacto
-no funciona para nadie, hoy ni con un cliente real dentro de seis meses.
+entradas elija un local. Si iOS no hubiera abierto el importador de contactos, el módulo de guardar
+contacto no funcionaría para nadie, hoy ni con un cliente real dentro de seis meses.
+
+El procedimiento se conserva íntegro: hay que repetirlo con los datos reales de cada cliente que
+active la entrada `vcard`, porque lo que se ha verificado es el mecanismo, no los valores.
 
 1. En el **iPhone**, abre **Safari** (no Chrome, no un navegador dentro de otra app) en
    `http://<dirección>:8080/demo/`
@@ -175,31 +190,32 @@ fallo.
 
 ## Comprobación 4 — Tap NFC real, bloqueado y desbloqueado
 
-**Estado: prácticamente resuelta en Android.** Probada por Diego sobre su propio dispositivo:
+> **RESULTADO en Android (2026-08-08): pasa desbloqueado; restricción de plataforma confirmada en
+> bloqueo.** Android 16, build `BP2A.250605.031.A3`.
+>
+> - **Desbloqueado: funciona.** El tap abre el hub.
+> - **Bloqueado: no pasa absolutamente nada.** Ni notificación, ni reacción del lector. Y **no
+>   existe ninguna opción de «leer NFC con la pantalla bloqueada»** en los ajustes de este
+>   dispositivo, así que no es una restricción de configuración que el usuario pueda levantar: es
+>   comportamiento del sistema operativo y del fabricante.
 
-- **Desbloqueado: funciona.** El tap abre el hub.
-- **Bloqueado: no dispara.** Esto es comportamiento de seguridad del sistema operativo y del
-  fabricante, **no un defecto de este código**. Muchos Android no leen etiquetas con la pantalla
-  apagada o bloqueada salvo que la lectura en pantalla de bloqueo esté activada, y algunos no lo
-  permiten en absoluto. Este fichero ya lo tenía documentado como restricción conocida; queda
-  registrado como tal.
+Esto cierra las dos preguntas que quedaban abiertas: *nada en absoluto* (no una notificación que no
+llegó a abrir), y *no hay ajuste que activar*. La distinción importaba porque una notificación sin
+abrir habría significado que el lector sí funciona y lo que falta es permiso; el silencio total
+significa que el lector está apagado con la pantalla bloqueada, y eso no se configura.
 
-Se anota, por tanto, como **pasa con restricción documentada** en Android. Lo que falta no es
-repetir la prueba, sino tres datos:
-
-1. Con el móvil bloqueado, **¿qué pasó exactamente?** ¿Absolutamente nada, o salió una
-   notificación que no llegó a abrir el hub? Son dos cosas distintas: la primera es que el lector
-   NFC está apagado con la pantalla bloqueada; la segunda es que el lector sí funciona y lo que
-   falta es el permiso para abrir sin desbloquear.
-2. **¿Está activada la lectura de NFC en la pantalla de bloqueo** en los ajustes del móvil? (Suele
-   estar en Ajustes → Conexiones → NFC, con nombres tipo «Leer NFC con la pantalla bloqueada» o
-   similar según el fabricante.) Si estaba desactivada, la restricción es de configuración y no de
-   hardware, y eso cambia lo que se le puede decir a un cliente.
-3. **Modelo y versión de Android**, para poder atribuir la restricción a algo concreto.
+**No es un defecto de este código y no hay nada que arreglar aquí.** Es una restricción de
+plataforma que hay que **contarle al cliente** antes de instalar nada: en este dispositivo, y
+probablemente en muchos Android, el cliente tiene que desbloquear el móvil antes de acercarlo a la
+mesa. FR-010 exige que el hub se abra «sin pasos extra más allá del flujo normal del sistema
+operativo» — y desbloquear el móvil *es* el flujo normal de ese sistema operativo, así que el
+requisito se cumple.
 
 **Falta el iPhone.** Los iPhone desde el XS leen etiquetas en segundo plano con la pantalla
 bloqueada, así que es plausible que se comporte distinto al Android — y eso es exactamente lo que
-hay que confirmar antes de dar la comprobación por cerrada.
+hay que confirmar antes de dar la comprobación por cerrada del todo. Es además la parte con más
+valor comercial: si el iPhone sí lee bloqueado, la restricción es de un solo ecosistema y no del
+producto.
 
 ### Cómo repetirla (iPhone, o Android con el ajuste cambiado)
 
@@ -233,7 +249,11 @@ móvil *es* el flujo normal de ese sistema operativo.
 
 ---
 
-## Comprobación 2 — Importación de vCard en Android Chrome
+## Comprobación 2 — Importación de vCard en Android Chrome ✅ PASA
+
+> **RESULTADO (2026-08-08): PASA.** Android 16, build `BP2A.250605.031.A3`. El fichero se descarga
+> y se importa a Contactos con los cuatro valores correctos y la dirección intacta como un solo
+> campo, así que el escapado RFC 2426 se sostiene también fuera del test automático.
 
 Prioridad menor que la 1: Android es históricamente el caso fiable, así que esta comprobación
 confirma más que descubre. Un fallo aquí sugeriría un bug de generación en `vcard.js` más que una
@@ -309,11 +329,16 @@ Filas en orden de prioridad, no de número.
 
 | # | Comprobación | Resultado | Dispositivo / SO | Notas |
 |---|--------------|-----------|------------------|-------|
-| 1 | vCard en iOS Safari | ⬜ pasa / ⬜ falla | | |
-| 4a | Tap NFC, desbloqueado | ✅ pasa (Android) / ⬜ iPhone | Android de Diego, modelo y versión: | Abre el hub correctamente |
-| 4b | Tap NFC, bloqueado | ⚠️ restricción conocida (Android) / ⬜ iPhone | Android de Diego, modelo y versión: | No dispara con la pantalla bloqueada. Comportamiento de SO/fabricante, no defecto de código. Pendiente: ¿nada en absoluto o notificación que no abrió? ¿Lectura NFC en pantalla de bloqueo activada? |
-| 2 | vCard en Android Chrome | ⬜ pasa / ⬜ falla | | |
-| 3 | Nocturno legible a oscuras | ⬜ pasa / ⬜ falla | | Sobre un tema de ejemplo; repetir con el tema de un cliente real |
+| 1 | vCard en iOS Safari | ✅ **PASA** | iPhone — iOS `[versión pendiente de anotar]` | Abre el importador de contactos. **Riesgo D5 cerrado; FR-020 se sostiene sin enmienda.** El aviso de HTTP no aplica a un resultado positivo |
+| 4a | Tap NFC, desbloqueado | ✅ pasa (Android) / ⬜ iPhone sin probar | Android 16, build `BP2A.250605.031.A3` | Abre el hub correctamente |
+| 4b | Tap NFC, bloqueado | ⚠️ restricción de plataforma confirmada (Android) / ⬜ iPhone sin probar | Android 16, build `BP2A.250605.031.A3` | No pasa **nada** con la pantalla bloqueada, y **no existe ajuste** de lectura NFC en pantalla de bloqueo en este dispositivo. Comportamiento de SO/fabricante, no defecto de código. Cumple FR-010: desbloquear es el flujo normal del SO |
+| 2 | vCard en Android Chrome | ✅ **PASA** | Android 16, build `BP2A.250605.031.A3` | Importa los cuatro valores; dirección intacta como un solo campo |
+| 3 | Nocturno legible a oscuras | ⬜ abierta — prioridad baja | | Aplazada a propósito: evalúa un tema de ejemplo. Repetir con el tema de un cliente real |
+
+**Estado de T039: abierto.** Tres de las cuatro comprobaciones han pasado, incluida la única que
+podía cambiar el plan. Queda la comprobación 3 (aplazada deliberadamente hasta que exista el tema
+de un cliente real) y el tap NFC en iPhone. Por eso T039 sigue **sin marcar** en `tasks.md`: la
+tarea enumera las cuatro, y marcarla afirmaría una comprobación que no se ha hecho.
 
 **Antes de terminar, confirma que el repositorio está limpio:**
 
@@ -326,5 +351,5 @@ npm test                      # 75 pasan, 5 saltadas
 Ese último comando importa más que antes: la suite es la condición de publicación del workflow de
 despliegue, así que un árbol sucio con datos de prueba se publicaría solo en el siguiente push.
 
-Después rellena la tabla, haz commit y marca T039 en `tasks.md` — teniendo en cuenta que T039 no
-se cierra del todo mientras la comprobación 1 siga abierta.
+Después rellena la tabla y haz commit. T039 se marca en `tasks.md` cuando estén las cuatro
+comprobaciones: hoy falta la 3, y el tap NFC en iPhone.
